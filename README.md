@@ -1,3 +1,3 @@
 # eec172-lab3
-Aroop Biswal
+Aroop Biswal  
 Benjamin Young
