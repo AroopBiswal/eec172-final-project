@@ -10,3 +10,4 @@
 !*.gitignore
 !*.syscfg
 !*.md
+!CC3200Board/*
