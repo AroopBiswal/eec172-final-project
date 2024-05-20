@@ -437,78 +437,78 @@ static void checkReceived() {
 }
 
 
-void main()
-{
-    BoardInit();
-    systick_expired = 1;
-    MAP_SysTickPeriodSet(SYSTICK_RELOAD_VAL);
-    MAP_SysTickIntRegister(SysTickHandler);
-    MAP_SysTickIntEnable();
-    MAP_SysTickEnable();
-
-    bits = 0;
-    //
-    // Muxing for Enabling UART_TX and UART_RX.
-    //
-    PinMuxConfig();
-
-    InitTerm();
-    InitUART();
-    ClearTerm();
-
-    MAP_GPIOIntRegister(IR_GPIO_PORT, IRIntHandler);
-
-    MAP_GPIOIntTypeSet(IR_GPIO_PORT, IR_GPIO_PIN, GPIO_RISING_EDGE);
-    MAP_GPIOIntEnable(IR_GPIO_PORT, IR_GPIO_PIN);
-    uint64_t status = MAP_GPIOIntStatus(IR_GPIO_PORT, false);
-    MAP_GPIOIntClear(IR_GPIO_PORT, status);
-
-    MAP_GPIOIntEnable(IR_GPIO_PORT, IR_GPIO_PIN);
-
-    //
-    // Enable the SPI module clock
-    //
-    MAP_PRCMPeripheralClkEnable(PRCM_GSPI,PRCM_RUN_MODE_CLK);
-    MAP_SPIReset(GSPI_BASE);
-
-    //
-    // Enable SPI for communication
-    //
-    MAP_SPIConfigSetExpClk(GSPI_BASE,MAP_PRCMPeripheralClockGet(PRCM_GSPI),
-                    SPI_IF_BIT_RATE,SPI_MODE_MASTER,SPI_SUB_MODE_0,
-                    (SPI_SW_CTRL_CS |
-                    SPI_4PIN_MODE |
-                    SPI_TURBO_OFF |
-                    SPI_CS_ACTIVEHIGH |
-                    SPI_WL_8));
-
-    MAP_SPIEnable(GSPI_BASE);
-
-    Adafruit_Init();
-    fillScreen(BG_COLOR);
-    drawFastHLine(0, 64, 128, RED);
-
-    DisplayBanner("ir receiver");
-    int i;
-    while(1)
-    {
-        if (systick_expired) {
-            if (bit_count > 25) {
-                // print the signal that was read
-                uint32_t bits_copy = bits;
-                for (i = 0; i < 32; i++) {
-                    if ((i) % 4 == 0) Report(" ");
-                    if (bits_copy & (0x80000000)) Report("1");// check if highest bit == 1
-                    else Report("0");
-                    bits_copy <<= 1;
-                }
-                Report("\r\n");
-                decodeBits();
-            }
-            checkReceived();
-        }
-    }
-}
+//void main()
+//{
+//    BoardInit();
+//    systick_expired = 1;
+//    MAP_SysTickPeriodSet(SYSTICK_RELOAD_VAL);
+//    MAP_SysTickIntRegister(SysTickHandler);
+//    MAP_SysTickIntEnable();
+//    MAP_SysTickEnable();
+//
+//    bits = 0;
+//    //
+//    // Muxing for Enabling UART_TX and UART_RX.
+//    //
+//    PinMuxConfig();
+//
+//    InitTerm();
+//    InitUART();
+//    ClearTerm();
+//
+//    MAP_GPIOIntRegister(IR_GPIO_PORT, IRIntHandler);
+//
+//    MAP_GPIOIntTypeSet(IR_GPIO_PORT, IR_GPIO_PIN, GPIO_RISING_EDGE);
+//    MAP_GPIOIntEnable(IR_GPIO_PORT, IR_GPIO_PIN);
+//    uint64_t status = MAP_GPIOIntStatus(IR_GPIO_PORT, false);
+//    MAP_GPIOIntClear(IR_GPIO_PORT, status);
+//
+//    MAP_GPIOIntEnable(IR_GPIO_PORT, IR_GPIO_PIN);
+//
+//    //
+//    // Enable the SPI module clock
+//    //
+//    MAP_PRCMPeripheralClkEnable(PRCM_GSPI,PRCM_RUN_MODE_CLK);
+//    MAP_SPIReset(GSPI_BASE);
+//
+//    //
+//    // Enable SPI for communication
+//    //
+//    MAP_SPIConfigSetExpClk(GSPI_BASE,MAP_PRCMPeripheralClockGet(PRCM_GSPI),
+//                    SPI_IF_BIT_RATE,SPI_MODE_MASTER,SPI_SUB_MODE_0,
+//                    (SPI_SW_CTRL_CS |
+//                    SPI_4PIN_MODE |
+//                    SPI_TURBO_OFF |
+//                    SPI_CS_ACTIVEHIGH |
+//                    SPI_WL_8));
+//
+//    MAP_SPIEnable(GSPI_BASE);
+//
+//    Adafruit_Init();
+//    fillScreen(BG_COLOR);
+//    drawFastHLine(0, 64, 128, RED);
+//
+//    DisplayBanner("ir receiver");
+//    int i;
+//    while(1)
+//    {
+//        if (systick_expired) {
+//            if (bit_count > 25) {
+//                // print the signal that was read
+//                uint32_t bits_copy = bits;
+//                for (i = 0; i < 32; i++) {
+//                    if ((i) % 4 == 0) Report(" ");
+//                    if (bits_copy & (0x80000000)) Report("1");// check if highest bit == 1
+//                    else Report("0");
+//                    bits_copy <<= 1;
+//                }
+//                Report("\r\n");
+//                decodeBits();
+//            }
+//            checkReceived();
+//        }
+//    }
+//}
 
 
 //*****************************************************************************

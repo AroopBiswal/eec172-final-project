@@ -4,7 +4,10 @@
  * @cliArgs --device "CC3200" --package "Default" --part "Default"
  * @versions {"tool":"1.19.0+3426"}
  */
+scripting.excludeFromBuild("pin_mux_config.c");
+scripting.excludeFromBuild("pin_mux_config.h");
 scripting.excludeFromBuild("rom_pin_mux_config.c");
+scripting.excludeFromBuild("summary.csv");
 
 /**
  * These are the peripherals and settings in this configuration
