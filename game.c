@@ -18,6 +18,9 @@
 #define SWITCH_2_BASE   GPIOA2_BASE
 #define SWITCH_2_PIN    0x40
 #define BUTTON_COOLDOWN 5
+#define ALL_WHITE       3
+#define ALL_BLACK       4
+#define LOCK_TIME       10
 
 bool game_over = false;
 // the following values track a shape based on it's "center", generally top left of center in a shape
@@ -27,12 +30,15 @@ int current_row;
 int current_rotation;
 enum BLOCK_STYLE current_style;
 
-int palettes[5][4] = {
+int palettes[8][4] = {
     {BLACK, WHITE, RED, ORANGE},
     {BLACK, WHITE, SKY_BLUE, GRAY},
     {BLACK, WHITE, BLUE, PINK}, 
     {WHITE, WHITE, WHITE, WHITE},
     {BLACK, BLACK, BLACK, BLACK},
+    {BLACK, WHITE, GREEN, LIME},
+    {BLACK, WHITE, ORANGE, BLUE},
+    {BLACK, WHITE, GREEN, MAGENTA}
 };
 
 int active_palette[4] = {BLACK, WHITE, RED, ORANGE};
@@ -52,21 +58,25 @@ int score = 0;
 bool paused = false; // if this is true, the systick handler will not update
 // array containing the offsets from the pivot point for the current piece
 int current_shape[4][2];
- int previous_preview[4][2];
-// bool first_preview;
+int previous_preview[4][2];
 enum SHAPE next_shape;
-
+bool currently_on_ground;
 
 volatile int frames_elapsed = 0; // how many ticks need to be processed. one tick is added each time the systick triggers
 volatile int button_cooldown = 0;
-int difficulty = 15; // this is how many frames will happen between the piece moving down
-volatile int down_counter; // once this reaches 0, the current piece will move downward
+int down_counter_reset = 15; // this is how many frames will happen between the piece moving down
+int lock_counter = 10; // this is how many frames you have to move a piece before its locked in
+volatile float down_counter; // once this reaches 0, the current piece will move downward
+float difficulty = 1.0;
 volatile int rotations; 
 
 void GameTickHandler() {
-    if (!paused)
-        if (button_cooldown > 0) button_cooldown -= 1;
-        frames_elapsed += 1;
+    if (paused) return; // don't update anything while paused
+
+    // update countdowns
+    if (button_cooldown > 0) button_cooldown -= 1;
+    if (currently_on_ground) lock_counter -= 1;
+    frames_elapsed += 1;
 }
 
 void switch1Handler() {
@@ -213,17 +223,10 @@ void updateAccelerometer() {
     // convert accel values into float roughly from 0-1.0
     float x_accel = (int) ((int8_t) data[1]) / 64.0;
     float y_accel = (int) ((int8_t) data[3]) / 64.0;
-
-    if (y_accel > 0.4) {
-        down_counter += 1;
-    }
-
-    if (y_accel < -0.6) {
-        down_counter -= 1;
-    }
-    if (y_accel < -0.8) {
-        down_counter -= 2;
-    }
+    if (y_accel < 0) y_accel = (y_accel * y_accel) * -1.1;
+    else y_accel = (y_accel * y_accel) * 0.75;
+    if (y_accel > 0.9) y_accel = 0.9;
+    down_counter += y_accel;
     movement_counter += x_accel * 40;
     // Report("x_accel %f y_accel %f \n\r", x_accel,y_accel);
 }
@@ -400,7 +403,7 @@ void initializeGame() {
     for (row = 0; row < NUM_ROWS; row++) 
         for (col = 0; col < NUM_COLS; col++) 
             gameboard[row][col] = 0;
-            
+
     // add some starting blocks for testing    
     // for (row = NUM_ROWS; row > NUM_ROWS - 5; row--) {
     //     for (col = 0; col < NUM_COLS; col++) {
@@ -416,7 +419,7 @@ void initializeGame() {
 
     // initialize game state
     movement_counter = 0;
-    down_counter = difficulty;
+    down_counter = down_counter_reset;
     active_palette_index = 1;
     swapPalettes(active_palette_index);
     chooseNextShape();
@@ -426,16 +429,16 @@ void initializeGame() {
     paused = false;
 }
 
-void flashChanges() {
+void flashChanges(int num_flashes) {
     // flash now empty rows
     int i;
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < num_flashes; i++) {
         swapPalettes(3); // draw removed tiles white
         drawNewGameboard(false);
-        UtilsDelay(100000); 
+        UtilsDelay(600000); 
         swapPalettes(4); // draw removed tiles black
         drawNewGameboard(false);
-        UtilsDelay(100000);
+        UtilsDelay(600000);
     }
     swapPalettes(active_palette_index);
 }
@@ -481,7 +484,7 @@ int checkAndClearLines() {
     if (lines_cleared == 0) return 0;
     // dont process game ticks during animation
     paused = true;
-    flashChanges();
+    flashChanges(3);
     // move rows downward to fill gaps
     // remove current shape while moving
     addCurrentShapeToBoard(EMPTY);
@@ -535,7 +538,7 @@ void gameLoop() {
         // Report("... running ... ");
         while (frames_elapsed > 0) {
             frames_elapsed--; // consume one frame 
-            down_counter--; // one step closer to dropping
+            down_counter -= difficulty; // one step closer to dropping
             updateAccelerometer(); // read values from accelerometer
             
             int direction; // 1 = right, -1 = left
@@ -564,21 +567,33 @@ void gameLoop() {
         }
 
         while (down_counter <= 0) {
-            down_counter += difficulty;
+            down_counter += down_counter_reset;
             int new_row = current_row + 1;
             if (checkCollision(new_row, current_col) == PIECE_COLLISION) {
-                // collision with pieces or floor! do not move piece, stop it where it is
-                // and start new shape  
-                // check if piece is touching the top, if so, game over :(
-                down_counter = 10;
-                for (i = 0; i < NUM_COLS; i++)
-                    if (gameboard[0][i] != EMPTY)  {
-                        game_over = true;
+                // start lock countdown
+                if (!currently_on_ground) {
+                    currently_on_ground = true;
+                    lock_counter = LOCK_TIME;
+                } else if (lock_counter <= 0) {
+                    currently_on_ground = false;
+                    // collision with pieces or floor! do not move piece, stop it where it is
+                    // and start new shape  
+                    down_counter = down_counter_reset;
+                    // check if piece is touching the top, if so, game over :(
+                    for (i = 0; i < NUM_COLS; i++)
+                        if (gameboard[0][i] != EMPTY)  {
+                            game_over = true;
+                        }
+                    
+                    if (!game_over)
+                        addCurrentShapeToBoard(EMPTY);
+                        flashChanges(1);
+                        addCurrentShapeToBoard(current_style);
+                        newCurrentShape();
+                        checkAndClearLines();
                     }
-                if (!game_over)
-                    newCurrentShape();
-                    checkAndClearLines();
-            } else { 
+            }
+            else { 
                 moveCurrentShape(new_row, current_col);
             }
         }

@@ -9,7 +9,7 @@
 #define BACKGROUND_COLOR       0x000000
 
 static void BoardInit(void);
-void main() {   
+     void main() {
 //    long lRetVal = -1;
     BoardInit();
 
