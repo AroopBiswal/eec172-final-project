@@ -30,6 +30,6 @@
 
 void drawGameboard();
 
-void game_loop();
+void gameLoop();
 
 #endif /* EEC172_FINAL_PROJECT_GAME_H_ */

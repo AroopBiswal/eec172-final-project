@@ -14,7 +14,7 @@
 extern int block_styles[NUM_BLOCK_STYLES][6][6];
 extern int SHAPES[7][4][2];
 extern int default_shape_styles[7];
-
+extern int ROTATION_MAP[8][2][2];
 
 enum SHAPE {
     LINE,

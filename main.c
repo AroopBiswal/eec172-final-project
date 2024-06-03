@@ -52,7 +52,7 @@ void main() {
     fillScreen(BLACK);
 //    initializeGame();
     drawGameboard();
-    game_loop();
+    gameLoop();
 //    while (1) {
 //        UtilsDelay(10000000);
 //        initializeGame();

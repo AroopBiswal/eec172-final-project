@@ -53,10 +53,21 @@ int SHAPES[7][4][2] = {
     {{0, 0}, {1, 0}, {0, -1}, {-1, 0}}    // T
 };
 
+int ROTATION_MAP[8][2][2] = {
+    {{-1, 0}, {0, 1}},
+    {{-1, 1}, {1, 1}},
+    {{0, 1}, {1, 0}},
+    {{1, 1,}, {1, -1}},
+    {{1, 0}, {0, -1}},
+    {{1, -1}, {-1, -1}},
+    {{0, -1}, {-1, 0}},
+    {{-1, -1}, {-1, 1}}
+};
+
 int default_shape_styles[NUM_SHAPE_TYPES] = {SOLID,
                                              HOLLOW,
-                                            //  SOLID,
-                                             DASHED_OUTLINE,
+                                             SOLID,
+                                            //  DASHED_OUTLINE,
                                              ACC_SOLID,
                                              HOLLOW,
                                              ACC_SOLID,
