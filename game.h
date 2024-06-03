@@ -7,7 +7,7 @@
 
 #ifndef EEC172_FINAL_PROJECT_GAME_H_
 #define EEC172_FINAL_PROJECT_GAME_H_
-#define FPS                    5
+#define FPS                    6
 
 #define NUM_COLORS             4
 #define PIECES_PER_SHAPE       4

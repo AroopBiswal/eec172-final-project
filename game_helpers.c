@@ -117,3 +117,41 @@ int ProcessReadCommand(char *pcInpString, unsigned char* RdDataBuf) {
     // DisplayBuffer(RdDataBuf, ucRdLen);
     return SUCCESS;
 }
+
+void myDrawChar(int x, int y, unsigned char c,
+			    unsigned int color, unsigned char size) {
+
+  unsigned char line;	
+  char i;						
+  char j;						
+						
+  if((x >= WIDTH)            || // Clip right
+     (y >= HEIGHT)           || // Clip bottom
+     ((x + 6 * size - 1) < 0) || // Clip left
+     ((y + 8 * size - 1) < 0))   // Clip top
+    return;
+
+  for (i=0; i<6; i++ ) {
+    if (i == 5) 
+      line = 0x0;
+    else 
+      line = font[(c*5)+i];
+    for (j = 0; j<8; j++) {
+      if (line & 0x1) {
+        if (size == 1) // default size
+          drawPixel(x+i, y+j, color);
+        else {  // big size
+          fillRect(x+(i*size), y+(j*size), size, size, color);
+        } 
+      }
+//      } else if (bg != color) {
+        // if (size == 1) // default size
+        //   drawPixel(x+i, y+j, bg);
+        // else {  // big size
+        //   fillRect(x+i*size, y+j*size, size, size, bg);
+        // }
+//      }
+      line >>= 1;
+    }
+  }
+}

@@ -38,6 +38,12 @@
 #include "gpio.h"
 #include "systick.h"
 
+#include "arduino/Adafruit_SSD1351.h"
+#include "arduino/Adafruit_GFX.h"
+#include "arduino/oled_test.h"
+#include "arduino/glcdfont.h"
+
+
 // arduino
 #include "spi.h"
 

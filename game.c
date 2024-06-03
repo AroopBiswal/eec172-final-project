@@ -18,8 +18,8 @@
 #define SWITCH_2_BASE   GPIOA2_BASE
 #define SWITCH_2_PIN    0x40
 #define BUTTON_COOLDOWN 5
-#define ALL_WHITE       3
-#define ALL_BLACK       4
+#define ALL_WHITE       6
+#define ALL_BLACK       7
 #define LOCK_TIME       10
 
 bool game_over = false;
@@ -34,11 +34,11 @@ int palettes[8][4] = {
     {BLACK, WHITE, RED, ORANGE},
     {BLACK, WHITE, SKY_BLUE, GRAY},
     {BLACK, WHITE, BLUE, PINK}, 
-    {WHITE, WHITE, WHITE, WHITE},
-    {BLACK, BLACK, BLACK, BLACK},
     {BLACK, WHITE, GREEN, LIME},
     {BLACK, WHITE, ORANGE, BLUE},
-    {BLACK, WHITE, GREEN, MAGENTA}
+    {BLACK, WHITE, GREEN, MAGENTA},
+    {WHITE, WHITE, WHITE, WHITE},
+    {BLACK, BLACK, BLACK, BLACK},
 };
 
 int active_palette[4] = {BLACK, WHITE, RED, ORANGE};
@@ -70,6 +70,9 @@ volatile float down_counter; // once this reaches 0, the current piece will move
 float difficulty = 1.0;
 volatile int rotations; 
 
+int total_lines_cleared;
+int score;
+
 void GameTickHandler() {
     if (paused) return; // don't update anything while paused
 
@@ -83,10 +86,11 @@ void switch1Handler() {
     uint64_t status = MAP_GPIOIntStatus(SWITCH_1_BASE, false);
     MAP_GPIOIntClear(SWITCH_1_BASE, status);
     // Report("switch 1 %d!\r\n", status);
-    if (button_cooldown == 0) {
-        rotations = 1;
-        button_cooldown = BUTTON_COOLDOWN;
-    }
+    // if (button_cooldown == 0) {
+    //     rotations = 1;
+    //     button_cooldown = BUTTON_COOLDOWN;
+    // }
+    changeThemes(active_palette_index + 1);
 }
 
 void switch2Handler() {
@@ -123,13 +127,22 @@ int checkCollision(int new_row, int new_col) {
     return collision_type;
 }
 
+void changeThemes(int new_palette) {
+    paused = true;
+    active_palette_index = new_palette;
+    fadeToBlack(2);
+    swapPalettes(new_palette);
+    fadeFromBlack(2);
+    paused = false;
+}
+
 void swapPalettes(int new_palette) {
     int i;
     for (i = 0; i < NUM_COLORS; i++) 
         active_palette[i] = palettes[new_palette][i];
 }
 
-void fadeToBlack() {
+void fadeToBlack(int speed) {
     int NUM_STEPS = 4;
     int i,j;
 
@@ -138,25 +151,25 @@ void fadeToBlack() {
             active_palette[j] = getBrightnessScaledColor(active_palette[j], i, NUM_STEPS);
         }
         drawGameboard();
-        UtilsDelay(5000000);
+        drawNextShapePreview();
+        UtilsDelay(5000000 / speed);
     }
-    UtilsDelay(10000000);
-    // swapPalettes(active_palette_index);
-    // drawGameboard();
+    UtilsDelay(5000000 / speed);
 }
 
-void fadeFromBlack() {
+void fadeFromBlack(int speed) {
     int NUM_STEPS = 4;
     int i,j;
 
     for (i = NUM_STEPS; i >= 0; i--) {
         for (j = 0; j < NUM_COLORS; j++) {
-            active_palette[j] = getBrightnessScaledColor(active_palette[j], i, NUM_STEPS);
+            active_palette[j] = getBrightnessScaledColor(palettes[active_palette_index][j], i, NUM_STEPS);
         }
         drawGameboard();
-        UtilsDelay(5000000);
+        drawNextShapePreview();
+        UtilsDelay(5000000 / speed);
     }
-    UtilsDelay(10000000);
+    UtilsDelay(5000000 / speed);
 }
 
 void drawBlock(int row, int col, int block_style) {
@@ -223,7 +236,7 @@ void updateAccelerometer() {
     // convert accel values into float roughly from 0-1.0
     float x_accel = (int) ((int8_t) data[1]) / 64.0;
     float y_accel = (int) ((int8_t) data[3]) / 64.0;
-    if (y_accel < 0) y_accel = (y_accel * y_accel) * -1.1;
+    if (y_accel < 0) y_accel = (y_accel) * 1.1;
     else y_accel = (y_accel * y_accel) * 0.75;
     if (y_accel > 0.9) y_accel = 0.9;
     down_counter += y_accel;
@@ -404,6 +417,20 @@ void initializeGame() {
         for (col = 0; col < NUM_COLS; col++) 
             gameboard[row][col] = 0;
 
+    total_lines_cleared = 0;
+    score = 0;
+    // draw lines area
+    char *lines = "LINES";
+    char *score = "SCORE";
+    char *next = "NEXT ";
+    for (i = 0; i < strlen(lines); i++) {
+        myDrawChar(1 + 6 * i, 80, lines[i], CYAN, 1);
+        myDrawChar(1 + 6 * i, 30, score[i], ORANGE, 1);
+        myDrawChar(x - 7 + 5 * i, y - 10, next[i], BLUE, 1);
+    }
+    updateLinesCleared(0);
+    updateScore(0);
+
     // add some starting blocks for testing    
     // for (row = NUM_ROWS; row > NUM_ROWS - 5; row--) {
     //     for (col = 0; col < NUM_COLS; col++) {
@@ -420,7 +447,7 @@ void initializeGame() {
     // initialize game state
     movement_counter = 0;
     down_counter = down_counter_reset;
-    active_palette_index = 1;
+    active_palette_index = 0;
     swapPalettes(active_palette_index);
     chooseNextShape();
     newCurrentShape();
@@ -433,14 +460,33 @@ void flashChanges(int num_flashes) {
     // flash now empty rows
     int i;
     for (i = 0; i < num_flashes; i++) {
-        swapPalettes(3); // draw removed tiles white
+        swapPalettes(ALL_WHITE); // draw removed tiles white
         drawNewGameboard(false);
         UtilsDelay(600000); 
-        swapPalettes(4); // draw removed tiles black
+        swapPalettes(ALL_BLACK); // draw removed tiles black
         drawNewGameboard(false);
         UtilsDelay(600000);
     }
     swapPalettes(active_palette_index);
+}
+
+void updateLinesCleared(int lines) {
+    total_lines_cleared += lines;
+    char* display = "000000";
+    snprintf(display, 6, "%d", total_lines_cleared);
+    int i;
+    for (i = 0; i < strlen(display); i++) {
+        drawChar(1 + 5 * i, 90, display[i], CYAN, BLACK, 1);
+    }
+}
+
+void updateScore(int score) {
+    char* display = "000000";
+    snprintf(display, 6, "%d", score);
+    int i;
+    for (i = 0; i < strlen(display); i++) {
+        drawChar(1 + 5 * i, 40, display[i], ORANGE, BLACK, 1);
+    }
 }
 
 int checkAndClearLines() {
@@ -586,11 +632,15 @@ void gameLoop() {
                         }
                     
                     if (!game_over)
+                        paused = true; // these next parts take a while, so don't 
+                                       // start moving the new piece so fast
                         addCurrentShapeToBoard(EMPTY);
                         flashChanges(1);
                         addCurrentShapeToBoard(current_style);
                         newCurrentShape();
-                        checkAndClearLines();
+                        int lines_cleared = checkAndClearLines();
+                        updateLinesCleared(lines_cleared);
+                        paused = false;
                     }
             }
             else { 
@@ -602,14 +652,15 @@ void gameLoop() {
         drawNewGameboard(true);
         drawDropPreview();
     }
-    fadeToBlack();
-    gameLoop();
+    fadeToBlack(1);
+    // gameLoop();
     // game over 
     paused = true;
     // verticalScroll(120);    
     char *gameover_string = "game over :(";
     for (i = 0; i < strlen(gameover_string); i++) {
-        drawChar(10 + 9 * i, 60, gameover_string[i], CYAN, BLACK, 2);
+        myDrawChar(10 + 9 * i, 60, gameover_string[i], RED, 2);
+//        drawChar(x, y, c, color, bg, size)
     }
 }
 

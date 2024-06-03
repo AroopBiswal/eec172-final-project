@@ -18,6 +18,8 @@ int ProcessReadCommand(char *pcInpString, unsigned char* RdDataBuf);
 
 void DisplayBuffer(unsigned char *pucDataBuf, unsigned char ucLen);
 
+void myDrawChar(int x, int y, unsigned char c,
+			    unsigned int color, unsigned char size);
 
 
 #endif /* EEC172_FINAL_PROJECT_GAME_HELPERS_H_ */
