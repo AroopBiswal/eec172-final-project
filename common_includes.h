@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
-
+#include <stdlib.h>
 
 // Simplelink includes
 #include "simplelink.h"
@@ -31,7 +31,7 @@
 #include "hw_common_reg.h"
 
 //Common interface includes
-#include "pinmux.h"
+#include "pin_mux_config.h"
 #include "gpio_if.h"
 #include "common.h"
 #include "uart_if.h"
@@ -43,8 +43,6 @@
 
 // Custom includes
 #include "utils/network_utils.h"
-
-
 
 
 #endif /* EEC172_LAB4_COMMON_INCLUDES_H_ */

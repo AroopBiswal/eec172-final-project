@@ -17,7 +17,7 @@ volatile int bit_count;
 
 long socket_id;
 
-static void SysTickHandler(void) {
+static void IR_SysTickHandler(void) {
     systick_expired += 1;
     time_since_write += 1;
 }

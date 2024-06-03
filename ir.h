@@ -11,7 +11,7 @@
 #include "common_includes.h"
 
 static void IRIntHandler(void);
-static void SysTickHandler(void);
+static void IR_SysTickHandler(void);
 static void newButtonPress(int button_pressed);
 static void decodeBits();
 static void clearSendBuf();

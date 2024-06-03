@@ -231,7 +231,7 @@
 //    }
 //}
 //
-//static void SysTickHandler(void) {
+//static void IR_SysTickHandler(void) {
 //    systick_expired += 1;
 //    time_since_write += 1;
 //}
@@ -442,7 +442,7 @@
 ////    BoardInit();
 ////    systick_expired = 1;
 ////    MAP_SysTickPeriodSet(SYSTICK_RELOAD_VAL);
-////    MAP_SysTickIntRegister(SysTickHandler);
+////    MAP_SysTickIntRegister(IR_SysTickHandler);
 ////    MAP_SysTickIntEnable();
 ////    MAP_SysTickEnable();
 ////
