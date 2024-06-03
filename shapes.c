@@ -7,7 +7,7 @@
 
 #include "shapes.h"
 
-int block_styles[NUM_BLOCK_STYLES][6][6] = { // empty square
+uint8_t block_styles[NUM_BLOCK_STYLES][6][6] = { // empty square
                            {{0, 0, 0, 0, 0, 0},
                             {0, 0, 0, 0, 0, 0},
                             {0, 0, 0, 0, 0, 0},
@@ -43,7 +43,7 @@ int block_styles[NUM_BLOCK_STYLES][6][6] = { // empty square
                             {1, 1, 0, 0, 1, 1}},
 };
 
-int SHAPES[7][4][2] = {
+int8_t SHAPES[7][4][2] = {
     {{0,0}, {-1,0}, {1, 0}, {2, 0}},      // LINE
     {{0, 0}, {-1, 0}, {1, 0}, {1, -1}},   // L
     {{0, 0}, {-1, 0}, {-1, -1}, {1, 0}},  // L_REVERSE
@@ -53,7 +53,7 @@ int SHAPES[7][4][2] = {
     {{0, 0}, {1, 0}, {0, -1}, {-1, 0}}    // T
 };
 
-int ROTATION_MAP[8][2][2] = {
+int8_t ROTATION_MAP[8][2][2] = {
     {{-1, 0}, {0, 1}},
     {{-1, 1}, {1, 1}},
     {{0, 1}, {1, 0}},
@@ -64,7 +64,7 @@ int ROTATION_MAP[8][2][2] = {
     {{-1, -1}, {-1, 1}}
 };
 
-int default_shape_styles[NUM_SHAPE_TYPES] = {SOLID,
+enum BLOCK_STYLE default_shape_styles[NUM_SHAPE_TYPES] = {SOLID,
                                              HOLLOW,
                                              SOLID,
                                             //  DASHED_OUTLINE,

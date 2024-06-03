@@ -27,9 +27,20 @@
 #define WALL_COLLISION         2
 #define NEXT_SHAPE_ROW         7
 #define NEXT_SHAPE_COL         14
+#define HELD_SHAPE_ROW         14
 
+#include "shapes.h"
 void drawGameboard();
 
 void gameLoop();
+
+void addCurrentShapeToBoard(int style);
+void fadeToBlack();
+void fadeFromBlack();
+void swapPalettes(int);
+void drawShapePreview(enum SHAPE shape_id, size_t init_row, size_t init_col);
+void chooseNextShape();
+void updateLinesCleared();
+void updateScore();
 
 #endif /* EEC172_FINAL_PROJECT_GAME_H_ */
