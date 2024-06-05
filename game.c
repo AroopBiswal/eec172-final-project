@@ -104,6 +104,8 @@ void GameTickHandler() {
 void switch1Handler() {
     uint64_t status = MAP_GPIOIntStatus(SWITCH_1_BASE, false);
     MAP_GPIOIntClear(SWITCH_1_BASE, status);
+    // Report("switch 2 %d!\r\n", status);
+    if (GPIOPinRead(SWITCH_1_BASE, SWITCH_1_PIN) != SWITCH_1_PIN) return;
     if (game_state == 0) {
         game_state = 1;
     }
@@ -511,6 +513,14 @@ void initializeGame() {
         myDrawChar(x - 7 + 6 * i, next_y - 10, next[i], BLUE, 1);
         myDrawChar(x - 7 + 6 * i, y - 10, held[i], GREEN, 1);
     }
+    
+    total_lines_cleared = 0;
+    char* display = "000000";
+    snprintf(display, 7, "%06d", total_lines_cleared);
+    for (i = 0; i < strlen(display); i++) {
+        drawChar(1 + 5 * i, 90, display[i], CYAN, BACKGROUND, 1);
+    }
+
     updateLinesClearedDisplay(0);
     updateScoreDisplay(0, 1);
 
@@ -558,11 +568,11 @@ void updateLinesClearedDisplay(int new_lines) {
     for (j = new_lines; j > 0; j--) {
         total_lines_cleared++;
         char* display = "000000";
-        snprintf(display, 6, "%d", total_lines_cleared);
+        snprintf(display, 7, "%06d", total_lines_cleared);
         for (i = 0; i < strlen(display); i++) {
             drawChar(1 + 5 * i, 90, display[i], CYAN, BACKGROUND, 1);
         }
-        UtilsDelay(5000000);
+        UtilsDelay(500000);
     }
     paused = false;
 }
@@ -573,14 +583,14 @@ void updateScoreDisplay(int new_score, int animation_steps) {
     // const int STEPS = 20;
     char* display = "000000";
     for (j = 0; j < animation_steps; j++) {
-        snprintf(display, 6, "%d", interpolateNumber(score, score + new_score,j,animation_steps));
+        snprintf(display, 7, "%06d", interpolateNumber(score, score + new_score,j,animation_steps));
         for (i = 0; i < strlen(display); i++) {
             drawChar(1 + 5 * i, 40, display[i], ORANGE, BACKGROUND, 1);
         }
         UtilsDelay(500000);
     }
     score += new_score;
-    snprintf(display, 6, "%d", score);
+    snprintf(display, 7, "%06d", score);
     for (i = 0; i < strlen(display); i++) 
         drawChar(1 + 5 * i, 40, display[i], WHITE, BACKGROUND, 1);
     UtilsDelay(1000000);
@@ -638,7 +648,7 @@ int checkAndClearLines() {
     for (row = NUM_ROWS; row >= 0; row--) {
         copy_row = row_shift_amount[row];
         if (copy_row < 0) copy_row = 0;
-        Report("new_row: %d    ", copy_row);
+        // Report("new_row: %d    ", copy_row);
         if (row % 5 == 0) Report("\r\n");
         for (col = 0; col < NUM_COLS; col++) {
             gameboard[row][col] = gameboard[copy_row][col];
@@ -684,7 +694,8 @@ void fillScreenWithBlocks() {
     int row, col;
     for (row = 0; row < NUM_ROWS; row++) {
         for (col = 0; col < NUM_COLS; col++) {
-            drawBlock(row, col, 2);
+            gameboard[row][col] = 2;
+            drawNewGameboard(true);
             UtilsDelay(50000);
         }
     }
@@ -771,7 +782,7 @@ void drawMenuOptions() {
         myDrawChar(x + 2 + i * 6, y+5, string[i], color, 1);
 }
 
-void gameLoop() { 
+int gameLoop() { 
     registerGameInterrupts();
     drawTitleScreen();
     while (game_state == 0) {
@@ -868,7 +879,7 @@ void gameLoop() {
                         if (lines_cleared == 2) updateScoreDisplay(level * 100, 15);
                         if (lines_cleared == 3) updateScoreDisplay(level * 300, 25);
                         if (lines_cleared == 4) updateScoreDisplay(level * 1200, 30);
-                        if (lines_cleared + total_lines_cleared > (level * LINES_PER_LEVEL))
+                        if ((total_lines_cleared) > (level * LINES_PER_LEVEL))
                             incrementLevel();
                         paused = false;
                     }
@@ -893,16 +904,16 @@ void gameLoop() {
         drawNewGameboard(true);
         drawDropPreview();
     }
-    fadeToBlack(1);
     fillScreenWithBlocks();
-
+    fadeToBlack(1);
     // gameLoop();
     // game over 
     paused = true;
     // verticalScroll(120);    
-    char *gameover_string = "game over :(";
-    for (i = 0; i < strlen(gameover_string); i++) {
-        myDrawChar(10 + 9 * i, 60, gameover_string[i], RED, 2);
+    // char *gameover_string = "game over :(";
+    // for (i = 0; i < strlen(gameover_string); i++) {
+    //     myDrawChar(10 + 9 * i, 60, gameover_string[i], RED, 2);
 //        drawChar(x, y, c, color, bg, size)
-    }
+    // }
+    return score;
 }

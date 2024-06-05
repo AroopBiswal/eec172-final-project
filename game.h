@@ -34,7 +34,7 @@
 void drawGameboard();
 
 void drawTitleScreen();
-void gameLoop();
+int gameLoop();
 
 void addCurrentShapeToBoard(int style);
 void fadeToBlack();
