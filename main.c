@@ -51,7 +51,9 @@ void main() {
     Adafruit_Init();
     fillScreen(BLACK);
 //    initializeGame();
-    drawGameboard();
+    drawTitleScreen();
+//    while(1) {};
+    // drawGameboard();
     gameLoop();
 //    while (1) {
 //        UtilsDelay(10000000);

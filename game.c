@@ -12,6 +12,7 @@
 #include "arduino/Adafruit_GFX.h"
 #include "arduino/oled_test.h"
 
+#define BACKGROUND      DARK_GRAY
 #define SWITCH_1_BASE   GPIOA1_BASE
 #define SWITCH_1_PIN    0x20
 #define SWITCH_2_BASE   GPIOA2_BASE
@@ -40,6 +41,8 @@ int palettes[8][4] = {
     {BLACK, BLACK, BLACK, BLACK},
 };
 
+int rainbow[8] = {RED, ORANGE, YELLOW, GREEN, SKY_BLUE, BLUE, MAGENTA};
+
 uint16_t active_palette[4] = {BLACK, WHITE, RED, ORANGE};
 uint8_t active_palette_index = 0;
 
@@ -65,11 +68,12 @@ bool held_used;
 bool currently_on_ground;
 
 volatile int frames_elapsed = 0; // how many ticks need to be processed. one tick is added each time the systick triggers
-volatile int button_cooldown = 0;
+volatile int rotation_cooldown = 0;
 int8_t down_counter_reset = 15; // this is how many frames will happen between the piece moving down
 int8_t lock_counter = 10; // this is how many frames you have to move a piece before its locked in
 volatile float down_counter; // once this reaches 0, the current piece will move downward
-float difficulty = 1.0;
+float difficulty = 0.75;
+int level;
 volatile int rotations; 
 
 volatile int queue_transition;
@@ -78,11 +82,21 @@ volatile int queue_hold_swap;
 int total_lines_cleared;
 int score;
 
+// 0 - title screen
+// 1 - gameloop
+// 2 - end screen
+int game_state;
+// -1 = left
+// 0 = none
+// 1 = right
+int menu_input; 
+int menu_select;
+
 void GameTickHandler() {
     if (paused) return; // don't update anything while paused
     rand(); // update rand
     // update countdowns
-    if (button_cooldown > 0) button_cooldown -= 1;
+    if (rotation_cooldown > 0) rotation_cooldown -= 1;
     if (currently_on_ground) lock_counter -= 1;
     frames_elapsed += 1;
 }
@@ -90,24 +104,22 @@ void GameTickHandler() {
 void switch1Handler() {
     uint64_t status = MAP_GPIOIntStatus(SWITCH_1_BASE, false);
     MAP_GPIOIntClear(SWITCH_1_BASE, status);
-    // Report("switch 1 %d!\r\n", status);
-    // if (button_cooldown == 0) {
-    //     rotations = 1;
-    //     button_cooldown = BUTTON_COOLDOWN;
-    // }
-    // queue_transition = active_palette_index + 1;
+    if (game_state == 0) {
+        game_state = 1;
+    }
     queue_hold_swap = 1;
-    // drawGameboard();
-    // drawNewGameboard(false);
 }
 
 void switch2Handler() {
     uint64_t status = MAP_GPIOIntStatus(SWITCH_2_BASE, false);
     MAP_GPIOIntClear(SWITCH_2_BASE, status);
     // Report("switch 2 %d!\r\n", status);
-    if (button_cooldown == 0) {
+    if (game_state == 0) {
+        game_state = 1;
+    }
+    if (rotation_cooldown == 0) {
         rotations = 1;
-        button_cooldown = BUTTON_COOLDOWN;
+        rotation_cooldown = BUTTON_COOLDOWN;
     }
 }
 
@@ -161,6 +173,7 @@ void fadeToBlack(int speed) {
         }
         drawGameboard();
         drawShapePreview(next_shape, NEXT_SHAPE_ROW, NEXT_SHAPE_COL);
+        drawShapePreview(held_shape, HELD_SHAPE_ROW, NEXT_SHAPE_COL);
         UtilsDelay(5000000 / speed);
     }
     UtilsDelay(5000000 / speed);
@@ -176,6 +189,7 @@ void fadeFromBlack(int speed) {
         }
         drawGameboard();
         drawShapePreview(next_shape, NEXT_SHAPE_ROW, NEXT_SHAPE_COL);
+        drawShapePreview(held_shape, HELD_SHAPE_ROW, NEXT_SHAPE_COL);
         UtilsDelay(5000000 / speed);
     }
     UtilsDelay(5000000 / speed);
@@ -245,9 +259,18 @@ void updateAccelerometer() {
     // convert accel values into float roughly from 0-1.0
     float x_accel = (int) -((int8_t) data[3]) / 64.0;
     float y_accel = (int) ((int8_t) data[1]) / 64.0;
-    if (y_accel < 0) y_accel = -(y_accel * y_accel) * 1.8;
-    else y_accel = (y_accel * y_accel) * 0.75;
-    if (y_accel > 0.9) y_accel = 0.9;
+
+    if (game_state == 0) {
+        if (x_accel > 0.5) menu_input = 1;
+        else if (x_accel < -0.5) menu_input = -1;
+    }
+    y_accel += 0.3; // bias accelerometer to make holding it slightly angled more neutral
+    if (y_accel < 0) 
+        y_accel = -(y_accel * y_accel) * 2.5;
+    else 
+        y_accel = (y_accel * y_accel) * 0.7;
+    if (y_accel > 0.9) // clamp holding
+        y_accel = 0.9;
 
 
     down_counter += y_accel;
@@ -273,7 +296,7 @@ void rotateCurrentShape(int new_rotations) {
     int old_rotation = current_rotation;
 
     if (new_rotations == 0) return;
-    if (current_shape_id == SQUARE) return; // squares should not be able to rotate
+    // if (current_shape_id == SQUARE) return; // squares should not be able to rotate
     // clear current shape from board
     for (i = 0; i < PIECES_PER_SHAPE; i++) {
         // row = current_row + current_shape[i][0];
@@ -359,7 +382,7 @@ void moveCurrentShape(int new_row, int new_col) {
 }
 
 void newCurrentShape(enum SHAPE new_shape) {
-    enum SHAPE current_shape_id = new_shape;
+    current_shape_id = new_shape;
     current_col = 5;
     current_row = 1;
     current_style = default_shape_styles[current_shape_id];
@@ -423,14 +446,19 @@ void drawShapePreview(enum SHAPE shape_id, size_t init_row, size_t init_col) {
 }
 
 void swapHeldAndCurrentShape() {
-    enum SHAPE temp;
+    if (held_used) return;
     // clear current shape
-    addCurrentShapeToBoard(EMPTY); 
-    temp = current_shape_id;
-    current_shape_id = held_shape;
-    held_shape = temp;
+    addCurrentShapeToBoard(EMPTY);
+    if (held_shape == NONE_SHAPE) {
+        held_shape = current_shape_id;
+        activateNextShape();
+    } else {
+        enum SHAPE temp = current_shape_id;
+        current_shape_id = held_shape;
+        held_shape = temp;
+        newCurrentShape(current_shape_id);
+    }
     held_used = true;
-    newCurrentShape(current_shape_id);
     drawShapePreview(held_shape, HELD_SHAPE_ROW, NEXT_SHAPE_COL);
 }
 
@@ -441,23 +469,26 @@ void chooseNextShape() {
 }
 
 void initializeGame() {
+    // clear background
+    fillScreen(DARK_GRAY);    
     // draw game board border
+    drawRect(LEFT_EDGE_PIXEL-3, TOP_EDGE_PIXEL-3, BOARD_WIDTH+6, BOARD_HEIGHT+6, GRAY);
     drawRect(LEFT_EDGE_PIXEL-2, TOP_EDGE_PIXEL-2, BOARD_WIDTH+4, BOARD_HEIGHT+4, WHITE);
     
     // draw border around next shape area
     int border = 3;
     int x = ((NEXT_SHAPE_COL - 1) * BLOCK_WIDTH) + LEFT_EDGE_PIXEL - border;
-    int y = ((NEXT_SHAPE_ROW - 1) * BLOCK_WIDTH) + TOP_EDGE_PIXEL - border;
+    int next_y = ((NEXT_SHAPE_ROW - 1) * BLOCK_WIDTH) + TOP_EDGE_PIXEL - border;
     int width = 2 * BLOCK_WIDTH + border * 2;
     int height = 4 * BLOCK_WIDTH + border * 2;
-    drawRect(x, y, width, height, WHITE);
+    drawRect(x-1, next_y -1, width+2, height+2, GRAY);
+    drawRect(x, next_y, width, height, WHITE);
 
     // draw border around held shape area
     x = ((NEXT_SHAPE_COL - 1) * BLOCK_WIDTH) + LEFT_EDGE_PIXEL - border;
-    y = ((HELD_SHAPE_ROW - 1) * BLOCK_WIDTH) + TOP_EDGE_PIXEL - border;
+    int y = ((HELD_SHAPE_ROW - 1) * BLOCK_WIDTH) + TOP_EDGE_PIXEL - border;
+    drawRect(x-1, y-1, width+2, height+2, GRAY);
     drawRect(x, y, width, height, WHITE);
-
-
     
     // clear board
     int i, row, col; 
@@ -473,21 +504,15 @@ void initializeGame() {
     char *lines = "LINES";
     char *score = "SCORE";
     char *next = "NEXT ";
+    char *held = "HELD ";
     for (i = 0; i < strlen(lines); i++) {
         myDrawChar(1 + 6 * i, 80, lines[i], CYAN, 1);
         myDrawChar(1 + 6 * i, 30, score[i], ORANGE, 1);
-        myDrawChar(x - 7 + 5 * i, y - 10, next[i], BLUE, 1);
+        myDrawChar(x - 7 + 6 * i, next_y - 10, next[i], BLUE, 1);
+        myDrawChar(x - 7 + 6 * i, y - 10, held[i], GREEN, 1);
     }
-    updateLinesCleared(0);
-    updateScore(0);
-
-    // add some starting blocks for testing    
-    // for (row = NUM_ROWS; row > NUM_ROWS - 5; row--) {
-    //     for (col = 0; col < NUM_COLS; col++) {
-    //         if (col == 5) continue;
-    //         gameboard[row][col] = 2;
-    //     }
-    // }
+    updateLinesClearedDisplay(0);
+    updateScoreDisplay(0, 1);
 
     for (i = 0; i < PIECES_PER_SHAPE; i++) {
         previous_preview[i][0] = 0;
@@ -495,6 +520,9 @@ void initializeGame() {
     }
 
     // initialize game state
+    level = 1;
+    difficulty = 0.75;
+
     movement_counter = 0;
     down_counter = down_counter_reset;
     active_palette_index = rand() % 5;
@@ -524,23 +552,41 @@ void flashChanges(int num_flashes) {
     swapPalettes(active_palette_index);
 }
 
-void updateLinesCleared(int lines) {
-    total_lines_cleared += lines;
-    char* display = "000000";
-    snprintf(display, 6, "%d", total_lines_cleared);
-    int i;
-    for (i = 0; i < strlen(display); i++) {
-        drawChar(1 + 5 * i, 90, display[i], CYAN, BLACK, 1);
+void updateLinesClearedDisplay(int new_lines) {
+    int i, j;
+    paused = true;
+    for (j = new_lines; j > 0; j--) {
+        total_lines_cleared++;
+        char* display = "000000";
+        snprintf(display, 6, "%d", total_lines_cleared);
+        for (i = 0; i < strlen(display); i++) {
+            drawChar(1 + 5 * i, 90, display[i], CYAN, BACKGROUND, 1);
+        }
+        UtilsDelay(5000000);
     }
+    paused = false;
 }
 
-void updateScore(int score) {
+void updateScoreDisplay(int new_score, int animation_steps) {
+    paused = true;
+    int i, j;
+    // const int STEPS = 20;
     char* display = "000000";
-    snprintf(display, 6, "%d", score);
-    int i;
-    for (i = 0; i < strlen(display); i++) {
-        drawChar(1 + 5 * i, 40, display[i], ORANGE, BLACK, 1);
+    for (j = 0; j < animation_steps; j++) {
+        snprintf(display, 6, "%d", interpolateNumber(score, score + new_score,j,animation_steps));
+        for (i = 0; i < strlen(display); i++) {
+            drawChar(1 + 5 * i, 40, display[i], ORANGE, BACKGROUND, 1);
+        }
+        UtilsDelay(500000);
     }
+    score += new_score;
+    snprintf(display, 6, "%d", score);
+    for (i = 0; i < strlen(display); i++) 
+        drawChar(1 + 5 * i, 40, display[i], WHITE, BACKGROUND, 1);
+    UtilsDelay(1000000);
+    for (i = 0; i < strlen(display); i++) 
+        drawChar(1 + 5 * i, 40, display[i], ORANGE, BACKGROUND, 1);
+    paused = false;
 }
 
 int checkAndClearLines() {
@@ -599,9 +645,18 @@ int checkAndClearLines() {
         }
     }
     addCurrentShapeToBoard(current_style);
-    drawGameboard(true);
+    drawGameboard();
     paused = false;
     return lines_cleared;
+}
+
+void incrementLevel() {
+    paused = true;
+    int new_palette = (active_palette_index + 1) % 6;
+    changeThemes(new_palette);
+    level++;
+    difficulty += 0.5;
+    paused = false;
 }
 
 void registerGameInterrupts() {
@@ -625,9 +680,122 @@ void registerGameInterrupts() {
     MAP_GPIOIntClear(SWITCH_2_BASE, status);
 }
 
+void fillScreenWithBlocks() {
+    int row, col;
+    for (row = 0; row < NUM_ROWS; row++) {
+        for (col = 0; col < NUM_COLS; col++) {
+            drawBlock(row, col, 2);
+            UtilsDelay(50000);
+        }
+    }
+}
+
+void drawTitleScreen() {
+    int i, j;
+    int width = 128;
+    int height = 95;
+    game_state = 0;
+
+    writeCommand(SSD1351_CMD_SETCOLUMN); // the next data bits will be x and width
+    writeData(0);
+    writeData(width-1);
+    writeCommand(SSD1351_CMD_SETROW); // the next data bits will be y and height
+    writeData(0);
+    writeData(height-1);
+    writeCommand(SSD1351_CMD_WRITERAM);
+
+    int fillcolor, palette_index, block_index, block_offset;
+    for (j = 0; j < height; j++) {
+        for (i = 0; i < width; i++) {
+            block_index = i / 16;
+            block_offset = i % 16;
+            palette_index = (title_data[j][block_index] >> (block_offset*2)) % 4;
+            fillcolor = title_palette[palette_index];
+            writeData(fillcolor >> 8); // sending the color one byte at a time, high byte first
+            writeData(fillcolor);
+        }
+    }
+    fillRect(10 - 2, 100 - 2, 128 - 20 + 4, 20 + 4, GRAY);
+    fillRect(10, 100, 108, 20, BLACK);
+    char* easy = "EASY";
+    char* med =  "MED ";
+    char* hard = "HARD";
+    // drawRect(x, y + 5, 20, 15, WHITE);
+//    int i;
+    int y = 100;
+    for (i = 0; i < strlen(easy); i++) {
+        myDrawChar(22 + i * 6, y+5, easy[i], GREEN, 1);
+        myDrawChar(56 + i * 6, y+5, med[i], ORANGE, 1);
+        myDrawChar(90 + i * 6, y+5, hard[i], RED, 1);
+    }
+
+}
+
+void drawMenuOptions() {
+    int x = 10;
+    int width = 128 - 20;
+    int y = 100;
+    int height = 20;
+    
+    // fillRect(x, y, width, height, BLACK);
+    if (menu_select == -1) drawRect(20 - 2, y + 2, 30, 15, BLACK);
+    if (menu_select == 0) drawRect(54 - 2, y + 2, 30, 15, BLACK);
+    if (menu_select == 1) drawRect(88 - 2, y + 2, 30, 15, BLACK);
+
+    menu_select += menu_input;
+    if (menu_select < -1) menu_select = -1;
+    if (menu_select > 1) menu_select = 1;
+    menu_input = 0;
+    char* string;
+    int color;
+    int i;
+    switch (menu_select) {
+        case -1:
+            x = 20;
+            string = "EASY";
+            color = GREEN;
+            break;
+        case 0:
+            x = 54;
+            string = "MED ";
+            color = ORANGE;
+            break;
+        case 1:
+            x = 88;
+            string = "HARD";
+            color = RED;
+            break;
+    };
+    drawRect(x-2, y + 2, 30, 15, WHITE);
+    for (i = 0; i < strlen(string); i++) 
+        myDrawChar(x + 2 + i * 6, y+5, string[i], color, 1);
+}
+
 void gameLoop() { 
-    initializeGame();
     registerGameInterrupts();
+    drawTitleScreen();
+    while (game_state == 0) {
+        if (frames_elapsed > 15) {
+            frames_elapsed = 0;
+            updateAccelerometer();
+            drawMenuOptions();
+        }
+    };
+    initializeGame();
+    switch (menu_select) {
+        case -1:
+            difficulty = 0.75;
+            level = 1;
+            break;
+        case 0:
+            difficulty = 1.25;
+            level = 2;
+            break;
+        case 1:
+            difficulty = 1.75;
+            level = 3;
+            break;
+    }
 
     int i;
     // Report("game starting \r\n");
@@ -694,7 +862,14 @@ void gameLoop() {
                         activateNextShape();
                         held_used = false;
                         int lines_cleared = checkAndClearLines();
-                        updateLinesCleared(lines_cleared);
+                        updateLinesClearedDisplay(lines_cleared);
+
+                        if (lines_cleared == 1) updateScoreDisplay(level * 40, 15);
+                        if (lines_cleared == 2) updateScoreDisplay(level * 100, 15);
+                        if (lines_cleared == 3) updateScoreDisplay(level * 300, 25);
+                        if (lines_cleared == 4) updateScoreDisplay(level * 1200, 30);
+                        if (lines_cleared + total_lines_cleared > (level * LINES_PER_LEVEL))
+                            incrementLevel();
                         paused = false;
                     }
             }
@@ -719,6 +894,8 @@ void gameLoop() {
         drawDropPreview();
     }
     fadeToBlack(1);
+    fillScreenWithBlocks();
+
     // gameLoop();
     // game over 
     paused = true;

@@ -21,6 +21,7 @@
 #define PINK            0xF3DE
 #define SKY_BLUE        0x3DDF
 #define GRAY            0x7BEF
+#define DARK_GRAY       0x2945  
 #define ORANGE          0xFC00
 // lime 58D854 01011000 11011000 01010100
 //             0101111011001010
