@@ -46,21 +46,34 @@
             "}"                                                             \
         "}\r\n\r\n"
 
-#define DATAHEADER "{" \
-            "\"state\": {\r\n"                                              \
-                "\"desired\" : {\r\n"                                       \
-                    "\"message\" :" \
-                     " {\"default\":\"default message\", "   \
-                     "\"email\":\""
+ #define DATAHEADER "{"                             \
+             "\"state\": {\r\n"                     \
+                 "\"desired\" : {\r\n"              \
+                    "\"leaderboard\" :{"                 \
+                    "\"BIRDIE\":\"050000\", "        \
+                    "\"PIPPIN\":\"030000\", "        \
+                    "\"MERI  \":\"020000\", "        \
+                    "\"MONTY \":\"010000\", "        \
+                    "\""
+//                    "\"BEN   \":\""                 \
 
-#define DATATAIL    "\"}\r\n"                                                \
-                "}"                                                         \
-            "}"                                                             \
-        "}\r\n\r\n"
+ #define DATATAIL    "\"}\r\n"                                               \
+                 "}"                                                         \
+             "}"                                                             \
+         "}\r\n\r\n"
+//#define DATAHEADER "{" \
+//            "\"state\": {\r\n"                                              \
+//                "\"score1\": \"10000\",\r\n"     \
+//                "\"score2\": \"60000\",\r\n"     \
+//                "\"score3\": \"50000\",\r\n"     \
+//                "\"myscore\": \""
 
-static int set_time();
-static void BoardInit(void);
-static int http_post(int iTLSSockID, char* sending_buf);
-static int http_get(int);
+//#define DATATAIL    "\"}\r\n"                                               \
+//                "}\r\n"                                                     \
+
+int set_time();
+//static void BoardInit(void);
+int http_post(int iTLSSockID, char* sending_buf);
+int http_get(int, char* received_buf);
 
 #endif /* EEC172_LAB4_LAB4_H_ */

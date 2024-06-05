@@ -72,7 +72,7 @@
 //*****************************************************************************
 
 
-static int set_time() {
+int set_time() {
     long retVal;
 
     g_time.tm_day = DATE;
@@ -142,7 +142,7 @@ static int set_time() {
 ////    sl_Stop(SL_STOP_TIMEOUT);
 //}
 
-static int http_post(int iTLSSockID, char* sending_buf) {
+int http_post(int iTLSSockID, char* sending_buf) {
     char acSendBuff[512];
     char acRecvbuff[1460];
     char cCLLength[200];
@@ -209,7 +209,7 @@ static int http_post(int iTLSSockID, char* sending_buf) {
     return 0;
 }
 
-static int http_get(int iTLSSockID) {
+int http_get(int iTLSSockID, char* receive_buf) {
     char acSendBuff[512];
     char acRecvbuff[1460];
     char cCLLength[200];
@@ -268,6 +268,10 @@ static int http_get(int iTLSSockID) {
         acRecvbuff[lRetVal+1] = '\0';
         UART_PRINT(acRecvbuff);
         UART_PRINT("\n\r\n\r");
+    }
+    int i;
+    for (i = 0; i < lRetVal + 1; i++) {
+        receive_buf[i] = acRecvbuff[i];
     }
     return lRetVal;
 }
