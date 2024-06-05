@@ -358,7 +358,44 @@ void initializeGame() {
     for (row = 0; row < NUM_ROWS; row++) 
         for (col = 0; col < NUM_COLS; col++) 
             gameboard[row][col] = 0;
+            previous_gameboard[row][col] = 0;
+        }
+
+    total_lines_cleared = 0;
+    score = 0;
+    // draw lines area
+    char *lines = "LINES";
+    char *score = "SCORE";
+    char *next = "NEXT ";
+    char *held = "HELD ";
+    for (i = 0; i < strlen(lines); i++) {
+        myDrawChar(1 + 6 * i, 80, lines[i], CYAN, 1);
+        myDrawChar(1 + 6 * i, 30, score[i], ORANGE, 1);
+        myDrawChar(x - 7 + 6 * i, next_y - 10, next[i], BLUE, 1);
+        myDrawChar(x - 7 + 6 * i, y - 10, held[i], GREEN, 1);
+    }
     
+    total_lines_cleared = 0;
+    char* display = "000000";
+    snprintf(display, 7, "%06d", total_lines_cleared);
+    for (i = 0; i < strlen(display); i++) {
+        drawChar(1 + 5 * i, 90, display[i], CYAN, BACKGROUND, 1);
+    }
+
+    updateLinesClearedDisplay(0);
+    updateScoreDisplay(0, 1);
+
+    for (i = 0; i < PIECES_PER_SHAPE; i++) {
+        previous_preview[i][0] = 0;
+        previous_preview[i][1] = 0;
+    }
+
+    // for (row = NUM_ROWS - 1; row > NUM_ROWS - 5; row--) {
+    //     for (col = 0; col < NUM_COLS; col++)
+    //         if (col == 5) continue;
+    //         else gameboard[row][col] = 1;
+    // }
+    // gameboard[NUM_ROWS - 2][3] = 0;
     // initialize game state
     movement_counter = 0;
     down_counter = difficulty;
@@ -389,16 +426,16 @@ int checkAndClearLines() {
                 break;
             }
         if (full) {
-            lines_cleared++;
             for (col = 0; col < NUM_COLS; col++) 
                 gameboard[row][col] = EMPTY;
-            if (first_empty_index == -1)
-                first_empty_index = row;
-            else {
-                for (i = first_empty_index; i < row; i++) {
-                    row_shift_amount[i] = row_shift_amount[i] - 1;
-                }
-            }
+            // if (first_empty_index == -1)
+            //     first_empty_index = row;
+            // else {
+            //     for (i = first_empty_index; i > row; i--) {
+            //         row_shift_amount[i] = row_shift_amount[i] - 1;
+            //     }
+            // }
+            lines_cleared++;
         }
         row_shift_amount[row] = row - lines_cleared; 
         return lines_cleared;
@@ -422,6 +459,21 @@ int checkAndClearLines() {
     // move rows downward to fill gaps
     int copy_row;
     for (row = NUM_ROWS; row >= 0; row--) {
+        copy_row = row_shift_amount[row];
+        if (copy_row < 0) copy_row = 0;
+        // Report("new_row: %d    ", copy_row);
+        if (row % 5 == 0) Report("\r\n");
+        // check if the row to be copied is empty
+        bool done = false;
+        while (copy_row > 0 && !done) {
+            for (col = 0; col < NUM_COLS; col++) 
+                if (gameboard[copy_row][col] != EMPTY) {    
+                    done = true;
+                    break;
+                };
+            if (!done) copy_row--;
+        }
+        Report("row: %d copy_row %d", row, copy_row);
         for (col = 0; col < NUM_COLS; col++) {
             copy_row = row_shift_amount[row];
             if (copy_row < 0) copy_row = 0;
