@@ -177,19 +177,6 @@ void main() {
 
     InitTerm();
     ClearTerm();
-//    MAP_SysTickPeriodSet(IR_SYSTICK_RELOAD_VAL);
-//    MAP_SysTickIntRegister(IR_SysTickHandler);
-//    MAP_SysTickIntEnable();
-//    MAP_SysTickEnable();
-//
-    // MAP_GPIOIntRegister(IR_GPIO_PORT, IRIntHandler);
-
-    // MAP_GPIOIntTypeSet(IR_GPIO_PORT, IR_GPIO_PIN, GPIO_RISING_EDGE);
-    // MAP_GPIOIntEnable(IR_GPIO_PORT, IR_GPIO_PIN);
-    // uint64_t status = MAP_GPIOIntStatus(IR_GPIO_PORT, false);
-    // MAP_GPIOIntClear(IR_GPIO_PORT, status);
-//
-//    MAP_GPIOIntEnable(IR_GPIO_PORT, IR_GPIO_PIN);
 
     MAP_PRCMPeripheralClkEnable(PRCM_GSPI,PRCM_RUN_MODE_CLK);
     MAP_SPIReset(GSPI_BASE);
@@ -208,33 +195,41 @@ void main() {
     MAP_SPIEnable(GSPI_BASE);
     Adafruit_Init();
     fillScreen(BLACK);
-//    initializeGame();
-    drawGameboard();
-    game_loop();
-//    while (1) {
-//        UtilsDelay(10000000);
-//        initializeGame();
-//        chooseNextShape();
-//    }
-//    // initialize global default app configuration
-//    g_app_config.host = SERVER_NAME;
-//    g_app_config.port = GOOGLE_DST_PORT;
-//
-//    //Connect the CC3200 to the local access point
-//    lRetVal = connectToAccessPoint();
-//    //Set time so that encryption can be used
-////    lRetVal = set_time();
-//    if(lRetVal < 0) {
-//        UART_PRINT("Unable to set time in the device");
-//        LOOP_FOREVER();
-//    }
-//    //Connect to the website with TLS encryption
-//    long socket_id = tls_connect();
-//    if(socket_id < 0) {
-//        ERR_PRINT(socket_id);
-//    }
-////    sl_Stop(SL_STOP_TIMEOUT);
-    while(1) {};
+    char* loading = "LOADING ... ";
+    int i;
+    for (i = 0; i < strlen(loading); i++)
+        drawChar(20 + i * 9, 60, loading[i], BLUE, BACKGROUND_COLOR, 2);
+    // initialize global default app configuration
+    g_app_config.host = SERVER_NAME;
+    g_app_config.port = GOOGLE_DST_PORT;
+
+    //Connect the CC3200 to the local access point
+    lRetVal = connectToAccessPoint();
+    //Set time so that encryption can be used
+    lRetVal = set_time();
+    if(lRetVal < 0) {
+        UART_PRINT("Unable to set time in the device");
+        LOOP_FOREVER();
+    }
+    //Connect to the website with TLS encryption
+    long socket_id = tls_connect();
+    if(socket_id < 0) {
+        ERR_PRINT(socket_id);
+    }
+    UtilsDelay(1000000);
+    char received[1460];
+    http_get(socket_id, received);
+    parseHighscores(received, leaderboard);
+    while (1) {
+    int score = gameLoop();
+//    int score = 1000;
+    drawLeaderboard();
+    drawScore(score);
+    enableIR();
+    IR_read_loop();
+    uploadLeaderboard(score, socket_id);
+//    while(1) {};
+    }
 }
 
 #if defined(ccs) || defined(gcc)

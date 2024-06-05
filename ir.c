@@ -8,26 +8,26 @@
 #include "ir.h"
 
 volatile int time_since_write = 0;
-volatile char sending_buf[100];
-volatile int cursor = 0;
+volatile char sending_buf[MAX_STRING_LENGTH];
+volatile size_t cursor = 0;
 volatile int systick_expired = 0;
 volatile uint64_t systick_delta_us = 0;
 volatile uint32_t bits;
 volatile int bit_count;
 
-long socket_id;
+//long socket_id;
 
-static void IR_SysTickHandler(void) {
+void IR_SysTickHandler(void) {
     systick_expired += 1;
     time_since_write += 1;
 }
 
-static inline void SysTickReset(void) {
+inline void SysTickReset(void) {
     HWREG(NVIC_ST_CURRENT) = 1;
     systick_expired = 0;
 }
 
-static void IRIntHandler(void) {
+void IRIntHandler(void) {
     // clear int flag
     unsigned long status;
     status = MAP_GPIOIntStatus(IR_GPIO_PORT, true);
@@ -52,7 +52,7 @@ static void IRIntHandler(void) {
     SysTickReset();
 }
 
-static void newButtonPress(int button_pressed) {
+ void newButtonPress(int button_pressed) {
 
     // these are constants that represent the number of characters associated with each button on the remote
     static int button_offsets[] = {0,0,3,6,9,12,15,19,22,26}; // how many characters after 'A' does each button start
@@ -88,13 +88,15 @@ static void newButtonPress(int button_pressed) {
     }
     Report("%d, %d, %d, %c, %d \r\n", previous_button, button_pressed, repeat_count, c, cursor);
 
-    if (cursor < 0) cursor = 0;
     sending_buf[cursor] = c;
     cursor = next_pos;
+    if (cursor < 0) cursor = 0;
+    if (cursor >= MAX_STRING_LENGTH) cursor = 0;
     previous_button = button_pressed;
+    drawSendBuf();
 }
 
-static void clearSendBuf() {
+ void clearSendBuf() {
     int i;
     for (i = 0; i < MAX_STRING_LENGTH; i++) {
         sending_buf[i] = ' ';
@@ -102,10 +104,10 @@ static void clearSendBuf() {
     cursor = 0;
 }
 
-static void decodeBits() {
+ int decodeBits() {
     if (bits & (0x40000000)) bits >>= 1; // if they are offset for some reason, unoffset them
     else bits >>= 5;
-
+    int return_value = 0;
     switch ((uint16_t) bits) {
         case ONE:
             Report("ONE\r\n");
@@ -148,7 +150,8 @@ static void decodeBits() {
             break;
         case MUTE:
             Report("MUTE\r\n");
-            http_post(socket_id);
+            // http_post(socket_id);
+            return_value = 1;
             break;
         case VOL:
             Report("vol\r\n");
@@ -158,10 +161,12 @@ static void decodeBits() {
     Report("\r\n");
     bits = 0;
     bit_count = 0;
+    return return_value;
 }
 
-static void IR_read_loop() {
+ void IR_read_loop() {
     int i;
+    clearSendBuf();
     while(1)
     {
         if (systick_expired) {
@@ -174,13 +179,13 @@ static void IR_read_loop() {
                     else Report("0");
                     bits_copy <<= 1;
                 }
-                decodeBits();
+                int val = decodeBits();
                 Report("\r\n");
                 for (i = 0; i <= cursor; i++) {
                     Report("%c", sending_buf[i]);
                 }
                 Report("\r\n");
-
+                if (val == 1) return;
             }
         }
     }

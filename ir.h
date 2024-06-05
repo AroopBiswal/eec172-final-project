@@ -8,15 +8,6 @@
 #ifndef EEC172_LAB4_IR_H_
 #define EEC172_LAB4_IR_H_
 
-#include "common_includes.h"
-
-static void IRIntHandler(void);
-static void IR_SysTickHandler(void);
-static void newButtonPress(int button_pressed);
-static void decodeBits();
-static void clearSendBuf();
-static void IR_read_loop();
-
 #define SYSCLKFREQ                 80000000ULL
 #define IR_SYSTICK_RELOAD_VAL      32000000UL
 #define BIT_AT(i, n)               i & (1 << n);
@@ -43,7 +34,22 @@ static void IR_read_loop();
 #define MUTE    0b0101100010100111
 #define VOL     0b0001100011100111
 
-#define MAX_STRING_LENGTH    80
+#define MAX_STRING_LENGTH    6
 #define DELETE  10
+
+#include "common_includes.h"
+
+extern volatile size_t cursor;
+extern volatile char sending_buf[MAX_STRING_LENGTH];
+
+extern void IRIntHandler();
+extern inline void IR_SysTickHandler();
+void newButtonPress(int button_pressed);
+int decodeBits();
+void clearSendBuf();
+void IR_read_loop();
+void drawSendBuf();
+
+
 
 #endif /* EEC172_LAB4_IR_H_ */
