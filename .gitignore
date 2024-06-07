@@ -11,4 +11,4 @@
 !*.syscfg
 !*.md
 !CC3200Board/*
-!website/*
+!docs/*
