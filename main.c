@@ -8,6 +8,48 @@
 
 #define BACKGROUND_COLOR       0x000000
 
+#define NUM_BUTTONS 3
+
+#define ONE     0b1000000001111111
+#define TWO     0b0100000010111111
+#define THREE   0b1100000000111111
+#define FOUR    0b0001000011101111
+#define FIVE    0b1001000001101111
+#define SIX     0b0101000010101111
+#define SEVEN   0b1101000000101111
+#define EIGHT   0b0000100011110111
+#define NINE    0b1000100001110111
+#define ZERO    0b0000000011111111
+#define MUTE    0b0101100010100111
+#define VOL     0b0001100011100111
+
+#define MAX_STRING_LENGTH    6
+#define DELETE  10
+
+#define SYSCLKFREQ                 80000000ULL
+#define IR_SYSTICK_RELOAD_VAL      32000000UL
+#define BIT_AT(i, n)               i & (1 << n);
+
+#define TICKS_TO_US(ticks) \
+    ((((ticks) / SYSCLKFREQ) * 1000000ULL) + \
+    ((((ticks) % SYSCLKFREQ) * 1000000ULL) / SYSCLKFREQ))\
+
+#define US_TO_TICKS(us)      ((SYSCLKFREQ / 1000000ULL) * (us))
+#define IR_GPIO_PIN          0x40
+#define IR_GPIO_PORT         GPIOA1_BASE
+
+
+
+volatile int time_since_write_aroop = 0;
+volatile char sending_buf[MAX_STRING_LENGTH];
+volatile size_t cursor_aroop = 0;
+volatile int systick_expired_aroop = 0;
+volatile uint64_t systick_delta_us_aroop = 0;
+volatile uint32_t bits;
+volatile int bit_count;
+
+int timesNavigated = 0;
+
 static void BoardInit(void);
 
 typedef struct leaderboard_entry {
@@ -22,6 +64,43 @@ void printEntry(leaderboard_entry entry) {
     UART_PRINT(entry.score);
 }
 
+int currentButton = 0;
+
+
+void IR_SysTickHandlerAroop(void) {
+    systick_expired_aroop += 1;
+    time_since_write_aroop += 1;
+}
+
+inline void SysTickResetAroop(void) {
+    HWREG(NVIC_ST_CURRENT) = 1;
+    systick_expired_aroop = 0;
+}
+
+void IRIntHandlerAroop(void) {
+    // clear int flag
+    unsigned long status;
+    status = MAP_GPIOIntStatus(IR_GPIO_PORT, true);
+    MAP_GPIOIntClear(IR_GPIO_PORT, status);
+
+    volatile uint64_t delta = IR_SYSTICK_RELOAD_VAL - SysTickValueGet();;
+
+    bit_count = bit_count + 1;
+    if (bit_count == 1) return; // ignore the first bit
+    if (bit_count > 34) return; // ignore long signals
+
+    if (systick_expired_aroop) { // ignore signals that are too old
+        SysTickReset();
+        return;
+    }
+
+    if (delta > 16930000)  // this number is very finicky :(
+        bits |= 1;
+    bits <<= 1;
+
+//    Report("delay: %lld status: %d \r\n", delta, status);
+    SysTickResetAroop();
+}
 
 void parseHighscores(char *received, leaderboard_entry *entry_buf) {
 //    UART_PRINT(received);
@@ -98,11 +177,11 @@ int strToInt(char* s) {
 
 void enableIR() {
     MAP_SysTickPeriodSet(IR_SYSTICK_RELOAD_VAL);
-    MAP_SysTickIntRegister(IR_SysTickHandler);
+    MAP_SysTickIntRegister(IR_SysTickHandlerAroop);
     MAP_SysTickIntEnable();
     MAP_SysTickEnable();
 
-    MAP_GPIOIntRegister(IR_GPIO_PORT, IRIntHandler);
+    MAP_GPIOIntRegister(IR_GPIO_PORT, IRIntHandlerAroop);
     MAP_GPIOIntTypeSet(IR_GPIO_PORT, IR_GPIO_PIN, GPIO_RISING_EDGE);
     MAP_GPIOIntEnable(IR_GPIO_PORT, IR_GPIO_PIN);
     uint64_t status = MAP_GPIOIntStatus(IR_GPIO_PORT, false);
@@ -166,6 +245,121 @@ void drawScore(int score) {
     }
 }
 
+void drawButton(int x, int y, int width, int height, const char* label, bool selected) {
+    int borderColor = selected ? RED : WHITE;
+    drawRect(x, y, width, height, borderColor);
+    setCursor(x + 10, y + 5);
+    setTextColor(WHITE, BLACK);
+    Outstr(label);
+}
+
+void selectButton_TitleScreen() {
+    switch (currentButton) {
+        case 0:
+            Report("Start selected\r\n");
+            //start the game
+            break;
+        case 1:
+            Report("Choose Difficulty selected\r\n");
+            break;
+        case 2:
+            Report("Leaderboard selected\r\n");
+            break;
+    }
+}
+
+static void decodeBits_TitleScreen() {
+    if (bits & (0x40000000)) bits >>= 1;
+    else bits >>= 5;
+
+    switch ((uint16_t) bits) {
+        case ONE:
+            Report("ONE\r\n");
+            navigateButtons(-1); // Move up
+            break;
+        case TWO:
+            Report("TWO\r\n");
+            navigateButtons(1); // Move down
+            break;
+        case MUTE:
+            Report("MUTE\r\n");
+            selectButton_TitleScreen(); // Select the current button
+            break;
+    }
+    Report("\r\n");
+    bits = 0;
+    bit_count = 0;
+}
+
+
+
+void drawTitleScreenAroop() {
+    fillScreen(BLACK); // Clear the screen
+    setTextColor(WHITE, BLACK);
+    setTextSize(2);
+    setCursor(20, 10); // Adjusted position
+    Outstr("TETRIS");
+
+    // Button dimensions
+    int buttonWidth = 80;
+    int buttonHeight = 20;
+    int buttonSpacing = 10;
+    int screenWidth = 128;
+
+    int startButtonX = (screenWidth - buttonWidth) / 2;
+    int startButtonY = 40;
+    int chooseDifficultyButtonX = startButtonX;
+    int chooseDifficultyButtonY = startButtonY + buttonHeight + buttonSpacing;
+    int leaderboardButtonX = startButtonX;
+    int leaderboardButtonY = chooseDifficultyButtonY + buttonHeight + buttonSpacing;
+
+    // Draw buttons
+    drawButton(startButtonX, startButtonY, buttonWidth, buttonHeight, "Start", currentButton == 0);
+    drawButton(chooseDifficultyButtonX, chooseDifficultyButtonY, buttonWidth, buttonHeight, "Difficulty", currentButton == 1);
+    drawButton(leaderboardButtonX, leaderboardButtonY, buttonWidth, buttonHeight, "Leaderboard", currentButton == 2);
+}
+
+void navigateButtons(int direction) {
+    currentButton = (currentButton + direction + NUM_BUTTONS) % NUM_BUTTONS;
+    timesNavigated++;
+    drawTitleScreenAroop();
+}
+
+void drawEndScreen() {
+    setTextColor(WHITE, BLACK);
+    setTextSize(2);
+    Outstr("GAME OVER");
+
+    // Fetch Leaderboard from AWS
+}
+
+void IR_read_loop_aroop() {
+   Report("IR READ LOOP STARTED");
+   int i;
+   clearSendBuf();
+   while(1)
+   {
+       if (systick_expired_aroop) {
+           if (bit_count > 25) {
+               // print the signal that was read
+               uint32_t bits_copy = bits;
+               for (i = 0; i < 32; i++) {
+                   if ((i) % 4 == 0) Report(" ");
+                   if (bits_copy & (0x80000000)) Report("1"); // check if highest bit == 1
+                   else Report("0");
+                   bits_copy <<= 1;
+               }
+               decodeBits_TitleScreen();
+               Report("\r\n");
+               for (i = 0; i <= cursor; i++) {
+                   Report("%c", sending_buf[i]);
+               }
+               Report("\r\n");
+           }
+       }
+   }
+}
+
 
 void main() {
     long lRetVal = -1;
@@ -194,6 +388,28 @@ void main() {
 
     MAP_SPIEnable(GSPI_BASE);
     Adafruit_Init();
+    drawTitleScreenAroop();
+    Report("Title Screen Drawn");
+    enableIR();
+//    IR_read_loop();
+    while(1 && timesNavigated<4) {
+            if (systick_expired_aroop) {
+                if (bit_count > 25) {
+                    uint32_t bits_copy = bits;
+                    int i = 0;
+                    for (i = 0; i < 32; i++) {
+                        if ((i) % 4 == 0) Report(" ");
+                        if (bits_copy & (0x80000000)) Report("1");
+                        else Report("0");
+                        bits_copy <<= 1;
+                    }
+                    Report("\r\n");
+                    navigateButtons(1);
+                    decodeBits_TitleScreen();
+                }
+            }
+        }
+
     fillScreen(BLACK);
     char* loading = "LOADING ... ";
     int i;
@@ -204,7 +420,7 @@ void main() {
     g_app_config.port = GOOGLE_DST_PORT;
 
     //Connect the CC3200 to the local access point
-    lRetVal = connectToAccessPoint();
+     lRetVal = connectToAccessPoint();
     //Set time so that encryption can be used
     lRetVal = set_time();
     if(lRetVal < 0) {

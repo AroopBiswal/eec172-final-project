@@ -726,30 +726,32 @@ void drawTitleScreen() {
     writeData(height-1);
     writeCommand(SSD1351_CMD_WRITERAM);
 
-    int fillcolor, palette_index, block_index, block_offset;
-    for (j = 0; j < height; j++) {
-        for (i = 0; i < width; i++) {
-            block_index = i / 16;
-            block_offset = i % 16;
-            palette_index = (title_data[j][block_index] >> (block_offset*2)) % 4;
-            fillcolor = title_palette[palette_index];
-            writeData(fillcolor >> 8); // sending the color one byte at a time, high byte first
-            writeData(fillcolor);
-        }
-    }
-    fillRect(10 - 2, 100 - 2, 128 - 20 + 4, 20 + 4, GRAY);
-    fillRect(10, 100, 108, 20, BLACK);
-    char* easy = "EASY";
-    char* med =  "MED ";
-    char* hard = "HARD";
-    // drawRect(x, y + 5, 20, 15, WHITE);
-//    int i;
-    int y = 100;
-    for (i = 0; i < strlen(easy); i++) {
-        myDrawChar(22 + i * 6, y+5, easy[i], GREEN, 1);
-        myDrawChar(56 + i * 6, y+5, med[i], ORANGE, 1);
-        myDrawChar(90 + i * 6, y+5, hard[i], RED, 1);
-    }
+
+
+//    int fillcolor, palette_index, block_index, block_offset;
+//    for (j = 0; j < height; j++) {
+//        for (i = 0; i < width; i++) {
+//            block_index = i / 16;
+//            block_offset = i % 16;
+//            palette_index = (title_data[j][block_index] >> (block_offset*2)) % 4;
+//            fillcolor = title_palette[palette_index];
+//            writeData(fillcolor >> 8); // sending the color one byte at a time, high byte first
+//            writeData(fillcolor);
+//        }
+//    }
+//    fillRect(10 - 2, 100 - 2, 128 - 20 + 4, 20 + 4, GRAY);
+//    fillRect(10, 100, 108, 20, BLACK);
+//    char* easy = "EASY";
+//    char* med =  "MED ";
+//    char* hard = "HARD";
+//    // drawRect(x, y + 5, 20, 15, WHITE);
+////    int i;
+//    int y = 100;
+//    for (i = 0; i < strlen(easy); i++) {
+//        myDrawChar(22 + i * 6, y+5, easy[i], GREEN, 1);
+//        myDrawChar(56 + i * 6, y+5, med[i], ORANGE, 1);
+//        myDrawChar(90 + i * 6, y+5, hard[i], RED, 1);
+//    }
 
 }
 

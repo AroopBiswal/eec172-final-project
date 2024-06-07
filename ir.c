@@ -165,6 +165,7 @@ void IRIntHandler(void) {
 }
 
  void IR_read_loop() {
+    Report("IR READ LOOP STARTED");
     int i;
     clearSendBuf();
     while(1)
