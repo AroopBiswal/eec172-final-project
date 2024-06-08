@@ -1,11 +1,33 @@
 @import url(fontawesome-all.min.css);
 @import 'https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400';
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /*
 	Stellar by HTML5 UP
 	html5up.net | @ajlkn
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 */
+
+
+/* 
+Styles added by us ------------------------------
+*/
+
+.subtitle {
+	font-size: 1.5em;
+	font-weight: 300;
+	margin: 0 0 0 0;
+	letter-spacing: -0.025em;
+}
+
+
+
+/*
+-------------------------------------------------- 
+ */
 
 html, body, div, span, applet, object,
 iframe, h1, h2, h3, h4, h5, h6, p, blockquote,
@@ -2635,6 +2657,7 @@ input, select, textarea {
 	section.special, article.special {
 		text-align: center;
 	}
+
 
 	header.major {
 		margin-bottom: 3em;
