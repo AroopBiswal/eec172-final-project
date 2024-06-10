@@ -6830,6 +6830,14 @@ video {
   margin-top:0.5rem
 }
 
+.mt-24{
+  margin-top:6rem
+}
+
+.mb-24{
+  margin-bottom:6rem
+}
+
 .box-border{
   box-sizing:border-box
 }
@@ -6959,6 +6967,10 @@ video {
 
 .w-screen{
   width:100vw
+}
+
+.w-3\/4{
+  width:75%
 }
 
 .flex-shrink{
@@ -7483,6 +7495,18 @@ video {
   --tw-space-x-reverse:0;
   margin-right:calc(0.5rem * var(--tw-space-x-reverse));
   margin-left:calc(0.5rem * calc(1 - var(--tw-space-x-reverse)))
+}
+
+.space-y-2 > :not([hidden]) ~ :not([hidden]){
+  --tw-space-y-reverse:0;
+  margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))
+}
+
+.space-y-4 > :not([hidden]) ~ :not([hidden]){
+  --tw-space-y-reverse:0;
+  margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom:calc(1rem * var(--tw-space-y-reverse))
 }
 
 .space-y-reverse > :not([hidden]) ~ :not([hidden]){
@@ -8082,6 +8106,10 @@ video {
   padding-left:6rem
 }
 
+.pt-48{
+  padding-top:12rem
+}
+
 .text-left{
   text-align:left
 }
@@ -8158,12 +8186,21 @@ video {
   line-height:1
 }
 
+.text-xs{
+  font-size:0.75rem;
+  line-height:1rem
+}
+
 .font-bold{
   font-weight:700
 }
 
 .font-extrabold{
   font-weight:800
+}
+
+.font-semibold{
+  font-weight:600
 }
 
 .uppercase{
