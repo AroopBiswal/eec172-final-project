@@ -34,18 +34,24 @@
 
 				<!-- Nav -->
 					<nav id="nav" class="bg-gray-200 p-4">
-						<ul>
-							<li class="font-extrabold">Design</li>
-							<li><a href="#description" class="active">Description</a></li>
-							<li><a href="#system-architecture">System Architecture</a></li>
-							<li><a href="#video-demo" class="active">Video Demo</a></li>
-
-							<li class="font-extrabold">Implementation</li>
-							<li><a href="#first">First Section</a></li>
-							<li><a href="#second">Second Section</a></li>
-
-							<li class="font-extrabold">Analysis</li>
-							<li><a href="#cta">Get Started</a></li>
+						<ul class="space-y-4">
+							<div class="space-y-2">
+								<li class="font-extrabold">Design:</li>
+								<li><a href="#description" class="active">Description</a></li>
+								<li><a href="#system-architecture">System Architecture</a></li>
+								<li><a href="#video-demo" class="active">Video Demo</a></li>
+							</div>
+				
+							<div class="space-y-2">
+								<li class="font-extrabold">Implementation:</li>
+								<li><a href="#first">First Section</a></li>
+								<li><a href="#second">Second Section</a></li>
+							</div>
+				
+							<div class="space-y-2">
+								<li class="font-extrabold">Analysis:</li>
+								<li><a href="#cta">Get Started</a></li>
+							</div>
 						</ul>
 					</nav>
 
@@ -67,7 +73,23 @@
 								<span class="image"><img src="images/pic01.jpg" alt="" /></span>
 							</div> -->
 						<!-- </section> -->
-						<h6 class="text-7xl m-8 p-4 px-24 font-extrabold bg-gradient-to-r from-purple-500 to-blue-500 text-white">Design</h6>
+						<h6 class="text-7xl m-8 p-4 text-center mt-24 font-semibold bg-gradient-to-r from-purple-500 to-blue-500 text-white">Design</h6>
+
+
+						<!-- Description -->
+						<section id="video-demo" class="main">
+							<div class="spotlight">
+								<div class="content">
+									<header class="major">
+										<h2>Video Demo</h2>
+									</header>
+									<!-- <ul class="actions">
+										<li><a href="generic.html" class="button">Learn More</a></li>
+									</ul> -->
+								</div>
+								<iframe src="https://drive.google.com/file/d/1nZ-icPIpA0X2SkhM6BkhhwXfGwqjS--3/preview" width="640" height="480" allow="autoplay"></iframe>
+							</div>
+						</section>
 
 						<!-- Description -->
 							<section id="description" class="main">
@@ -79,7 +101,7 @@
 
 										<h6 class="text-2xl underline">test</h6>
 
-
+										
 										<p>Tiltris is a spin-off of the popular single-player game Tetris where players manipulate blocks as they fall to create complete rows, which then disappear, earning points and making room for more blocks. Our version, Tiltris, utilizes the accelerometer on the CC3200 to enable tilt controls that allow the user to move the block horizontally. To rotate the Tetris block, the user can use buttons on the board. The game uses the LCD screen using SPI to display the game. We use an AWS web service to store a leaderboard of players with the most points. We also use an IR receiver to allow the user to type in their name for the leaderboard. </p>
 										<!-- <ul class="actions">
 											<li><a href="generic.html" class="button">Learn More</a></li>
@@ -98,7 +120,9 @@
 											<h2>System Architecture</h2>
 										</header>
 										<p> This diagram shows how we designed the system for our game to be played on. As is shown, we have an IR reciever that takes in input from the TV remote. Also, we use an I2C connection to the CC3200's built in accelerometer to get data what direction and how much the user tilts the device laterally. In addition, we utilize an SPI connection to the LCD display to display the game. To implement the leaderboard, we used a REST API to connect to our AWS thing where we store and update a json that represents the leaderboard.</p>
-										<img src="./images/system-architecture.png" alt="System Architecture" style="width:100%">
+										<div class="flex items-center justify-center">
+											<img class="w-1/2" src="./images/system-architecture.png" alt="System Architecture">
+										</div>
 									</div>
 									
 								</div>
@@ -110,7 +134,7 @@
 										<header class="major">
 											<h2>Game Design</h2>
 										</header>
-										<p> This diagram shows how we designed the system for our game to be played on. As is shown, we have an IR reciever that takes in input from the TV remote. Also, we use an I2C connection to the CC3200's built in accelerometer to get data what direction and how much the user tilts the device laterally. In addition, we utilize an SPI connection to the LCD display to display the game. To implement the leaderboard, we used a REST API to connect to our AWS thing where we store and update a json that represents the leaderboard.</p>
+										<p> Our main concern when creating this prototype was to ensure that the controls were intuitive and simple to use. </p>
 										<div class="flex items-center justify-center">
 											<img class="w-1/2" src="./images/game-design.png" alt="System Architecture">
 										</div>
@@ -120,20 +144,7 @@
 								</div>
 							</section>
 
-							<!-- Description -->
-							<section id="video-demo" class="main">
-								<div class="spotlight">
-									<div class="content">
-										<header class="major">
-											<h2>Video Demo</h2>
-										</header>
-										<!-- <ul class="actions">
-											<li><a href="generic.html" class="button">Learn More</a></li>
-										</ul> -->
-									</div>
-									<iframe src="https://drive.google.com/file/d/1nZ-icPIpA0X2SkhM6BkhhwXfGwqjS--3/preview" width="640" height="480" allow="autoplay"></iframe>
-								</div>
-							</section>
+							
 
 						<!-- First Section -->
 							<section id="first" class="main special">
