@@ -6822,6 +6822,10 @@ video {
   clear:none
 }
 
+.m-8{
+  margin:2rem
+}
+
 .mt-2{
   margin-top:0.5rem
 }
@@ -6935,6 +6939,26 @@ video {
 
 .w-\[weird-and-invalid\]{
   width:weird-and-invalid
+}
+
+.w-12{
+  width:3rem
+}
+
+.w-10{
+  width:2.5rem
+}
+
+.w-8{
+  width:2rem
+}
+
+.w-1\/2{
+  width:50%
+}
+
+.w-screen{
+  width:100vw
 }
 
 .flex-shrink{
@@ -7900,6 +7924,25 @@ video {
   background-color:rgb(255 0 0 / var(--tw-bg-opacity))
 }
 
+.bg-gray-200{
+  --tw-bg-opacity:1;
+  background-color:rgb(229 231 235 / var(--tw-bg-opacity))
+}
+
+.bg-gradient-to-r{
+  background-image:linear-gradient(to right, var(--tw-gradient-stops))
+}
+
+.from-purple-500{
+  --tw-gradient-from:#a855f7 var(--tw-gradient-from-position);
+  --tw-gradient-to:rgb(168 85 247 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)
+}
+
+.to-blue-500{
+  --tw-gradient-to:#3b82f6 var(--tw-gradient-to-position)
+}
+
 .decoration-slice{
   -webkit-box-decoration-break:slice;
           box-decoration-break:slice
@@ -8010,6 +8053,35 @@ video {
      object-fit:scale-down
 }
 
+.p-8{
+  padding:2rem
+}
+
+.p-4{
+  padding:1rem
+}
+
+.px-24{
+  padding-left:6rem;
+  padding-right:6rem
+}
+
+.pl-4{
+  padding-left:1rem
+}
+
+.pl-16{
+  padding-left:4rem
+}
+
+.pl-20{
+  padding-left:5rem
+}
+
+.pl-24{
+  padding-left:6rem
+}
+
 .text-left{
   text-align:left
 }
@@ -8066,13 +8138,32 @@ video {
   vertical-align:super
 }
 
-.text-xs{
-  font-size:0.75rem;
-  line-height:1rem
+.text-lg{
+  font-size:1.125rem;
+  line-height:1.75rem
+}
+
+.text-3xl{
+  font-size:1.875rem;
+  line-height:2.25rem
+}
+
+.text-2xl{
+  font-size:1.5rem;
+  line-height:2rem
+}
+
+.text-7xl{
+  font-size:4.5rem;
+  line-height:1
 }
 
 .font-bold{
   font-weight:700
+}
+
+.font-extrabold{
+  font-weight:800
 }
 
 .uppercase{
@@ -8150,6 +8241,11 @@ video {
 .text-blue-500{
   --tw-text-opacity:1;
   color:rgb(59 130 246 / var(--tw-text-opacity))
+}
+
+.text-white{
+  --tw-text-opacity:1;
+  color:rgb(255 255 255 / var(--tw-text-opacity))
 }
 
 .underline{
@@ -8535,12 +8631,16 @@ Styles added by us ------------------------------
   letter-spacing: -0.025em;
 }
 
+h6 {
+  font-size: 10em;
+}
+
 /*
 -------------------------------------------------- 
  */
 
 html, body, div, span, applet, object,
-iframe, h1, h2, h3, h4, h5, h6, p, blockquote,
+iframe, h1, h2, h3, h4, h5, p, blockquote,
 pre, a, abbr, acronym, address, big, cite,
 code, del, dfn, em, img, ins, kbd, q, s, samp,
 small, strike, strong, sub, sup, tt, var, b,
@@ -8700,20 +8800,20 @@ p.content {
   text-align: justify;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3, h4, h5 {
   font-weight: 300;
   line-height: 1.5;
   margin: 0 0 0.7em 0;
   letter-spacing: -0.025em;
 }
 
-h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+h1 a, h2 a, h3 a, h4 a, h5 a {
   color: inherit;
   text-decoration: none;
 }
 
 h1 {
-  font-size: 2.5em;
+  font-size: 2.0em;
   line-height: 1.2;
 }
 
@@ -8722,7 +8822,7 @@ h2 {
 }
 
 h3 {
-  font-size: 1.25em;
+  font-size: 1.5em;
 }
 
 h4 {
@@ -8731,10 +8831,6 @@ h4 {
 
 h5 {
   font-size: 0.9em;
-}
-
-h6 {
-  font-size: 0.7em;
 }
 
 @media screen and (max-width: 736px) {
@@ -8819,7 +8915,7 @@ strong, b {
   color: #ffffff;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3, h4, h5 {
   color: #ffffff;
 }
 
@@ -11638,7 +11734,7 @@ body.is-preload #header.alt .logo {
   color: #636363;
 }
 
-#nav h1, #nav h2, #nav h3, #nav h4, #nav h5, #nav h6 {
+#nav h1, #nav h2, #nav h3, #nav h4, #nav h5 {
   color: #636363;
 }
 
@@ -11741,7 +11837,7 @@ body.is-preload #header.alt .logo {
   color: #636363;
 }
 
-#main h1, #main h2, #main h3, #main h4, #main h5, #main h6 {
+#main h1, #main h2, #main h3, #main h4, #main h5 {
   color: #636363;
 }
 
