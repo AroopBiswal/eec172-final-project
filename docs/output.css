@@ -6826,16 +6826,29 @@ video {
   margin:2rem
 }
 
+.mx-auto{
+  margin-left:auto;
+  margin-right:auto
+}
+
+.mb-4{
+  margin-bottom:1rem
+}
+
+.mb-6{
+  margin-bottom:1.5rem
+}
+
+.ml-6{
+  margin-left:1.5rem
+}
+
 .mt-2{
   margin-top:0.5rem
 }
 
 .mt-24{
   margin-top:6rem
-}
-
-.mb-24{
-  margin-bottom:6rem
 }
 
 .box-border{
@@ -6937,6 +6950,10 @@ video {
   display:none
 }
 
+.w-1\/2{
+  width:50%
+}
+
 .w-\[this-is\\\\\]{
   width:this-is\\
 }
@@ -6947,30 +6964,6 @@ video {
 
 .w-\[weird-and-invalid\]{
   width:weird-and-invalid
-}
-
-.w-12{
-  width:3rem
-}
-
-.w-10{
-  width:2.5rem
-}
-
-.w-8{
-  width:2rem
-}
-
-.w-1\/2{
-  width:50%
-}
-
-.w-screen{
-  width:100vw
-}
-
-.w-3\/4{
-  width:75%
 }
 
 .flex-shrink{
@@ -7174,6 +7167,10 @@ video {
 
 .list-outside{
   list-style-position:outside
+}
+
+.list-disc{
+  list-style-type:disc
 }
 
 .appearance-none{
@@ -8077,37 +8074,8 @@ video {
      object-fit:scale-down
 }
 
-.p-8{
-  padding:2rem
-}
-
 .p-4{
   padding:1rem
-}
-
-.px-24{
-  padding-left:6rem;
-  padding-right:6rem
-}
-
-.pl-4{
-  padding-left:1rem
-}
-
-.pl-16{
-  padding-left:4rem
-}
-
-.pl-20{
-  padding-left:5rem
-}
-
-.pl-24{
-  padding-left:6rem
-}
-
-.pt-48{
-  padding-top:12rem
 }
 
 .text-left{
@@ -8132,6 +8100,10 @@ video {
 
 .text-end{
   text-align:end
+}
+
+.indent-16{
+  text-indent:4rem
 }
 
 .align-baseline{
@@ -8166,29 +8138,14 @@ video {
   vertical-align:super
 }
 
-.text-lg{
-  font-size:1.125rem;
-  line-height:1.75rem
-}
-
-.text-3xl{
-  font-size:1.875rem;
-  line-height:2.25rem
-}
-
 .text-2xl{
   font-size:1.5rem;
   line-height:2rem
 }
 
-.text-7xl{
-  font-size:4.5rem;
+.text-6xl{
+  font-size:3.75rem;
   line-height:1
-}
-
-.text-xs{
-  font-size:0.75rem;
-  line-height:1rem
 }
 
 .font-bold{
@@ -10966,80 +10923,36 @@ input[type="checkbox"]:focus + label:before,
   background-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Image */
-
-.image {
-  border-radius: 8px;
-  border: 0;
-  display: inline-block;
-  position: relative;
-}
-
-.image img {
-  border-radius: 8px;
-  display: block;
-}
-
-.image.left, .image.right {
-  max-width: 40%;
-}
-
-.image.left img, .image.right img {
-  width: 100%;
-}
-
-.image.left {
-  float: left;
-  margin: 0 1.5em 1em 0;
-  top: 0.25em;
-}
-
-.image.right {
-  float: right;
-  margin: 0 0 1em 1.5em;
-  top: 0.25em;
-}
-
-.image.fit {
-  display: block;
-  margin: 0 0 2em 0;
-  width: 100%;
-}
-
-.image.fit img {
-  width: 100%;
-}
-
-.image.main {
-  display: block;
-  margin: 0 0 3em 0;
-  width: 100%;
-}
-
-.image.main img {
-  width: 100%;
-}
-
-/* List */
-
 ol {
   list-style: decimal;
-  margin: 0 0 2em 0;
-  padding-left: 1.25em;
+  margin: 0 0 1em 0;
+  padding-left: 1em;
+  font-size: 0.875rem;
+  /* Smaller font size */
 }
 
 ol li {
   padding-left: 0.25em;
+  padding-top: 0.2em;
+  /* Less padding on top */
+  padding-bottom: 0.2em;
+  /* Less padding on bottom */
 }
 
 ul {
   list-style: disc;
-  margin: 0 0 2em 0;
+  margin: 0 0 1em 0;
   padding-left: 1em;
+  font-size: 0.875rem;
+  /* Smaller font size */
 }
 
 ul li {
   padding-left: 0.5em;
+  padding-top: 0.2em;
+  /* Less padding on top */
+  padding-bottom: 0.2em;
+  /* Less padding on bottom */
 }
 
 ul.alt {
@@ -11049,7 +10962,8 @@ ul.alt {
 
 ul.alt li {
   border-top: solid 1px;
-  padding: 0.5em 0;
+  padding: 0.25em 0;
+  /* Less padding */
 }
 
 ul.alt li:first-child {
@@ -11058,17 +10972,21 @@ ul.alt li:first-child {
 }
 
 dl {
-  margin: 0 0 2em 0;
+  margin: 0 0 1em 0;
+  font-size: 0.875rem;
+  /* Smaller font size */
 }
 
 dl dt {
   display: block;
   font-weight: 400;
-  margin: 0 0 1em 0;
+  margin: 0 0 0.5em 0;
+  /* Less margin */
 }
 
 dl dd {
-  margin-left: 2em;
+  margin-left: 1.5em;
+  /* Less margin */
 }
 
 dl.alt dt {
@@ -11107,11 +11025,17 @@ ul.actions {
   list-style: none;
   margin-left: -1em;
   padding-left: 0;
+  font-size: 0.875rem;
+  /* Smaller font size */
 }
 
 ul.actions li {
   padding: 0 0 0 1em;
   vertical-align: middle;
+  padding-top: 0.2em;
+  /* Less padding on top */
+  padding-bottom: 0.2em;
+  /* Less padding on bottom */
 }
 
 ul.actions.special {
@@ -11133,7 +11057,8 @@ ul.actions.stacked {
 }
 
 ul.actions.stacked li {
-  padding: 1.3em 0 0 0;
+  padding: 0.65em 0 0 0;
+  /* Less padding */
 }
 
 ul.actions.stacked li:first-child {
@@ -11175,7 +11100,8 @@ ul.actions.fit.stacked {
     flex-grow: 1;
     -ms-flex-shrink: 1;
     flex-shrink: 1;
-    padding: 1em 0 0 0;
+    padding: 0.5em 0 0 0;
+    /* Less padding */
     text-align: center;
     width: 100%;
   }
@@ -11189,18 +11115,18 @@ ul.actions.fit.stacked {
   }
 
   ul.actions:not(.fixed) li input[type="submit"],
-					ul.actions:not(.fixed) li input[type="reset"],
-					ul.actions:not(.fixed) li input[type="button"],
-					ul.actions:not(.fixed) li button,
-					ul.actions:not(.fixed) li .button {
+						ul.actions:not(.fixed) li input[type="reset"],
+						ul.actions:not(.fixed) li input[type="button"],
+						ul.actions:not(.fixed) li button,
+						ul.actions:not(.fixed) li .button {
     width: 100%;
   }
 
   ul.actions:not(.fixed) li input[type="submit"].icon:before,
-						ul.actions:not(.fixed) li input[type="reset"].icon:before,
-						ul.actions:not(.fixed) li input[type="button"].icon:before,
-						ul.actions:not(.fixed) li button.icon:before,
-						ul.actions:not(.fixed) li .button.icon:before {
+							ul.actions:not(.fixed) li input[type="reset"].icon:before,
+							ul.actions:not(.fixed) li input[type="button"].icon:before,
+							ul.actions:not(.fixed) li button.icon:before,
+							ul.actions:not(.fixed) li .button.icon:before {
     margin-left: -0.5rem;
   }
 }
@@ -11215,7 +11141,8 @@ ul.icons {
 
 ul.icons li {
   display: inline-block;
-  padding: 0 0.65em 0 0;
+  padding: 0 0.5em 0 0;
+  /* Less padding */
 }
 
 ul.icons li:last-child {
