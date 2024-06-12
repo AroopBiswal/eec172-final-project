@@ -1,7 +1,6 @@
-# Ignore everything
+
 *
 
-# But do not ignore directories, as this allows us to search down into them
 !*/
 
 # Do not ignore .c and .h files
@@ -11,3 +10,8 @@
 !*.syscfg
 !*.md
 !CC3200Board/*
+!docs/*
+!docs/**
+
+
+.DS_Store
